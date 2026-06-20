@@ -1,0 +1,51 @@
+/* ===== base ===== */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #0F172A;
+  background: #fff;
+  -webkit-font-smoothing: antialiased;
+}
+button, textarea, input { font-family: inherit; }
+a { color: inherit; }
+
+/* ===== animations ===== */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { animation: spin 1s linear infinite; }
+@keyframes blink { 0%, 80%, 100% { opacity: .25; } 40% { opacity: 1; } }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: #94A3B8; display: inline-block; animation: blink 1.2s infinite; }
+
+/* bottom mobile nav: hidden on desktop */
+.mobile-nav { display: none; }
+
+/* ===== tablet: collapse the two-column layouts ===== */
+@media (max-width: 920px) {
+  .hero-grid { grid-template-columns: 1fr !important; gap: 28px !important; }
+  .cards-3 { grid-template-columns: 1fr 1fr !important; }
+  .res-2col { grid-template-columns: 1fr !important; }
+  .chat-2col { flex-direction: column !important; }
+  .source-panel { width: 100% !important; max-height: 150px; order: -1; }
+}
+
+/* ===== show bottom nav, hide desktop nav ===== */
+@media (max-width: 760px) {
+  .desktop-nav { display: none !important; }
+  .mobile-nav { display: flex !important; }
+  body { padding-bottom: 60px; }            /* room for the fixed bottom nav */
+  .chat-page { height: calc(100vh - 62px - 60px) !important; } /* keep input above nav */
+}
+
+/* ===== phone ===== */
+@media (max-width: 600px) {
+  .hero-grid, .cards-3, .cards-2, .qopts { grid-template-columns: 1fr !important; }
+  .hero-title { font-size: 31px !important; }
+  .hero-sub { font-size: 17px !important; }
+  .big-h2 { font-size: 21px !important; }
+  .page { padding-left: 14px !important; padding-right: 14px !important; }
+  .hero-art { padding: 16px 12px !important; min-height: 0 !important; }
+  .pills { gap: 14px 18px !important; }
+  .btn-row { width: 100%; }
+  .btn-row > button, .btn-row > a { flex: 1 1 100%; justify-content: center; }
+  .source-panel { max-height: 130px; }
+}
