@@ -3,6 +3,7 @@ import { Flame, Award, CheckCircle2, Users, ArrowRight } from "lucide-react";
 import Button from "../components/ui/Button";
 import Gauge from "../components/ui/Gauge";
 import { Stat } from "../components/Pieces";
+import { ExamCountdown } from "../components/ExamReminder";
 import { SUBJECTS } from "../data/subjects";
 import { useApp } from "../context/AppContext";
 import { C } from "../theme";
@@ -20,6 +21,8 @@ export default function Progress() {
   return (
     <main className="page" style={{ maxWidth: 1080, margin: "0 auto", padding: "34px 20px 60px" }}>
       <h1 style={{ fontSize: 28, fontWeight: 800, margin: "0 0 18px" }}>Мой прогресс</h1>
+
+      <ExamCountdown />
 
       <div className="cards-2" style={{ display: "grid", gridTemplateColumns: "1.1fr 1fr", gap: 16, marginBottom: 18 }}>
         <div style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 20, padding: 22, textAlign: "center" }}>

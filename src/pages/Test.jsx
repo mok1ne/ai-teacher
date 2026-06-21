@@ -32,7 +32,7 @@ export default function Test() {
       correct += s.c;
       if (s.c < s.t) weak.push(topic); else strong.push(topic);
     });
-    const predicted = Math.round(35 + (correct / total) * 60);
+    const predicted = Math.round(30 + (correct / total) * 70);
     setResults({ subjectKey, predicted, correct, total, weak, strong });
     navigate("/results");
   }

@@ -3,12 +3,13 @@ import { Target, CheckCircle2, Brain, ArrowRight, Sparkles, RefreshCw } from "lu
 import Button from "../components/ui/Button";
 import Gauge from "../components/ui/Gauge";
 import { SUBJECTS } from "../data/subjects";
+import { ExamSetup, ExamCountdown } from "../components/ExamReminder";
 import { useApp } from "../context/AppContext";
 import { C } from "../theme";
 
 export default function Results() {
   const navigate = useNavigate();
-  const { results, setTutorTarget } = useApp();
+  const { results, setTutorTarget, examDate } = useApp();
   if (!results) return <Navigate to="/test" replace />;
 
   const subject = SUBJECTS[results.subjectKey];
@@ -18,6 +19,7 @@ export default function Results() {
 
   return (
     <main className="page" style={{ maxWidth: 1080, margin: "0 auto", padding: "34px 20px 60px" }}>
+      {examDate ? <ExamCountdown /> : <ExamSetup />}
       <div className="res-2col" style={{ display: "grid", gridTemplateColumns: "360px 1fr", gap: 24, alignItems: "start" }}>
         {/* score card */}
         <div style={{ textAlign: "center", background: "#fff", border: `1px solid ${C.line}`, borderRadius: 22, padding: "28px 22px", boxShadow: "0 14px 40px -28px #0f172a66" }}>

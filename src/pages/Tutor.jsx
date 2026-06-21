@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Brain, ShieldCheck, CheckCircle2, Loader2, Send } from "lucide-react";
+import { ArrowLeft, Brain, ShieldCheck, CheckCircle2, Loader2, Send, Lock } from "lucide-react";
 import Button from "../components/ui/Button";
 import ChatBubble from "../components/ChatBubble";
 import { callClaude } from "../lib/api";
@@ -10,13 +10,14 @@ import { C } from "../theme";
 
 export default function Tutor() {
   const navigate = useNavigate();
-  const { tutorTarget, studied, markStudied } = useApp();
+  const { tutorTarget, studied, markStudied, studentSummary, remaining, limit, canSend, useOneMessage } = useApp();
 
   const general = !tutorTarget;
   const topic = tutorTarget?.topic || "Подготовка к ЕГЭ и ОГЭ";
   const examName = tutorTarget?.exam || "ЕГЭ/ОГЭ";
   const source = general ? null : getSource(topic);
   const isStudied = studied.includes(topic);
+  const limitReached = remaining <= 0;
 
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
@@ -28,10 +29,11 @@ export default function Tutor() {
   useEffect(() => {
     if (started.current) return;
     started.current = true;
+    if (limitReached) return; // лимит исчерпан — стартовое объяснение не запускаем
     const seed = { role: "user", hidden: true,
       content: general
-        ? `Поприветствуй ученика как ИИ-репетитор сервиса «Время сдавать». Коротко скажи, что помогаешь готовиться к ЕГЭ и ОГЭ по любому предмету и теме, и спроси, с чего хочет начать. Будь дружелюбным и кратким.`
-        : `Объясни тему «${topic}» для подготовки к ${examName}. Дай короткое понятное объяснение с примером и закончи одним тренировочным вопросом.` };
+        ? `Поприветствуй ученика как ИИ-репетитор сервиса «Время сдавать». Коротко и тепло скажи, что помогаешь готовиться к ЕГЭ и ОГЭ по любому предмету и теме, и спроси, с чего хочет начать.`
+        : `Это твоя первая реплика по теме. Сначала коротко и тепло поддержи ученика: опираясь на контекст о нём, отметь, что у него уже получается, и спокойно скажи, что эту тему мы сейчас разберём вместе — без осуждения. Затем понятно объясни тему «${topic}» для подготовки к ${examName} с коротким примером и закончи одним тренировочным вопросом.` };
     run([seed]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -40,8 +42,9 @@ export default function Tutor() {
 
   async function run(msgs) {
     setBusy(true); setError(false);
+    useOneMessage(); // расходуем сообщение из дневного лимита
     try {
-      const reply = await callClaude(msgs.filter((m) => m.content), topic, examName, source);
+      const reply = await callClaude(msgs.filter((m) => m.content), topic, examName, source, studentSummary);
       setMessages([...msgs, { role: "assistant", content: reply }]);
     } catch (e) {
       setError(true); setMessages(msgs);
@@ -49,7 +52,7 @@ export default function Tutor() {
   }
   function send() {
     const text = input.trim();
-    if (!text || busy) return;
+    if (!text || busy || !canSend) return;
     const next = [...messages, { role: "user", content: text }];
     setMessages(next); setInput(""); run(next);
   }
@@ -74,7 +77,7 @@ export default function Tutor() {
               <div style={{ width: 44, height: 44, borderRadius: 13, background: `linear-gradient(135deg,${C.blue},${C.purple})`, display: "grid", placeItems: "center", margin: "0 auto 8px" }}>
                 <Brain size={22} color="#fff" />
               </div>
-              <div style={{ fontSize: 13.5, color: C.soft }}>Ваш персональный ИИ-репетитор. Отвечает по формату ФИПИ, без выдумок.</div>
+              <div style={{ fontSize: 13.5, color: C.soft }}>Ваш персональный ИИ-репетитор. Отвечает по формату ФИПИ, без выдумок, и только по учёбе.</div>
             </div>
 
             {visible.map((m, i) => <ChatBubble key={i} role={m.role} text={m.content} />)}
@@ -82,6 +85,11 @@ export default function Tutor() {
             {error && (
               <div style={{ alignSelf: "flex-start", background: "#FEF2F2", color: "#B91C1C", padding: "12px 16px", borderRadius: 14, fontSize: 14, maxWidth: "85%" }}>
                 Не удалось связаться с ИИ. Проверьте соединение и попробуйте отправить сообщение ещё раз.
+              </div>
+            )}
+            {limitReached && visible.length === 0 && !busy && (
+              <div style={{ alignSelf: "center", textAlign: "center", maxWidth: 380, color: C.mut, fontSize: 14, marginTop: 20 }}>
+                На сегодня бесплатные сообщения закончились. Возвращайтесь завтра или откройте безлимит.
               </div>
             )}
           </div>
@@ -99,16 +107,31 @@ export default function Tutor() {
             </div>
           )}
 
-          <div style={{ display: "flex", gap: 10, alignItems: "flex-end" }}>
-            <textarea value={input} onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-              placeholder={general ? "Спросите что угодно по подготовке…" : "Задайте вопрос по теме…"} rows={1}
-              style={{ flex: 1, resize: "none", padding: "13px 16px", borderRadius: 14, border: `1.5px solid ${C.line}`,
-                fontSize: 15, fontFamily: "inherit", outline: "none", maxHeight: 120 }} />
-            <Button onClick={send} disabled={busy || !input.trim()} style={{ padding: 13, borderRadius: 14 }}>
-              {busy ? <Loader2 size={20} className="spin" /> : <Send size={20} />}
-            </Button>
-          </div>
+          {limitReached ? (
+            <div style={{ background: C.lavBg, border: `1.5px solid ${C.purple}33`, borderRadius: 14, padding: "14px 16px", display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+              <Lock size={20} style={{ color: C.purple }} />
+              <div style={{ flex: 1, minWidth: 200, fontSize: 13.5, color: C.sub }}>
+                Дневной лимит бесплатной версии исчерпан ({limit} сообщений). Откройте безлимит, чтобы продолжить.
+              </div>
+              <Button size="sm" color={C.purple} onClick={() => navigate("/parent")}>Открыть безлимит</Button>
+            </div>
+          ) : (
+            <>
+              <div style={{ fontSize: 12, color: C.soft, marginBottom: 6, textAlign: "right" }}>
+                Осталось {remaining} из {limit} сообщений сегодня
+              </div>
+              <div style={{ display: "flex", gap: 10, alignItems: "flex-end" }}>
+                <textarea value={input} onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
+                  placeholder={general ? "Спросите что угодно по подготовке…" : "Задайте вопрос по теме…"} rows={1}
+                  style={{ flex: 1, resize: "none", padding: "13px 16px", borderRadius: 14, border: `1.5px solid ${C.line}`,
+                    fontSize: 15, fontFamily: "inherit", outline: "none", maxHeight: 120 }} />
+                <Button onClick={send} disabled={busy || !input.trim()} style={{ padding: 13, borderRadius: 14 }}>
+                  {busy ? <Loader2 size={20} className="spin" /> : <Send size={20} />}
+                </Button>
+              </div>
+            </>
+          )}
         </div>
 
         {/* source panel (RAG grounding made visible) */}
