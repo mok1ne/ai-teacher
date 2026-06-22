@@ -46,7 +46,7 @@ export default function Test() {
   const back = () => (qIndex > 0 ? setQIndex(qIndex - 1) : navigate("/test"));
 
   return (
-    <main className="page" style={{ maxWidth: 1080, margin: "0 auto", padding: "30px 20px 60px" }}>
+    <main className="page" style={{ maxWidth: 1300, margin: "0 auto", padding: "30px 20px 60px" }}>
       <div style={{ maxWidth: 760, margin: "0 auto", background: "#fff", border: `1px solid ${C.line}`, borderRadius: 22, padding: "26px 26px 28px", boxShadow: "0 14px 40px -28px #0f172a55" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
           <button onClick={back} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", cursor: "pointer", color: C.mut, fontSize: 14, fontWeight: 600 }}>

@@ -5,7 +5,7 @@ import { C } from "../theme";
 export default function SubjectPicker() {
   const navigate = useNavigate();
   return (
-    <main className="page" style={{ maxWidth: 1080, margin: "0 auto", padding: "44px 20px" }}>
+    <main className="page" style={{ maxWidth: 1300, margin: "0 auto", padding: "44px 20px" }}>
       <h1 style={{ fontSize: 30, fontWeight: 800, margin: "0 0 6px" }}>Выберите предмет для диагностики</h1>
       <p style={{ fontSize: 15.5, color: C.mut, margin: "0 0 26px" }}>Короткий тест покажет ваш прогноз балла и слабые темы. Без регистрации.</p>
       <div className="cards-2" style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 14 }}>

@@ -18,7 +18,7 @@ export default function Home() {
   return (
     <main>
       {/* hero */}
-      <section className="page" style={{ maxWidth: 1080, margin: "0 auto", padding: "46px 22px 30px" }}>
+      <section className="page" style={{ maxWidth: 1300, margin: "0 auto", padding: "46px 22px 30px" }}>
         <div className="hero-grid" style={{ display: "grid", gridTemplateColumns: "1.05fr .95fr", gap: 40, alignItems: "center" }}>
           <div>
             <h1 className="hero-title" style={{ fontSize: 46, lineHeight: 1.08, fontWeight: 800, margin: 0, letterSpacing: "-.02em" }}>
@@ -47,7 +47,7 @@ export default function Home() {
       </section>
 
       {/* how it works */}
-      <section className="page" style={{ maxWidth: 1080, margin: "0 auto", padding: "30px 22px" }}>
+      <section className="page" style={{ maxWidth: 1300, margin: "0 auto", padding: "30px 22px" }}>
         <SectionHead eyebrow="Как это работает" title="Три шага до уверенности на экзамене" />
         <div className="cards-3" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 18 }}>
           {[
@@ -67,7 +67,7 @@ export default function Home() {
       </section>
 
       {/* trust banner */}
-      <section className="page" style={{ maxWidth: 1080, margin: "0 auto", padding: "16px 22px" }}>
+      <section className="page" style={{ maxWidth: 1300, margin: "0 auto", padding: "16px 22px" }}>
         <div style={{ borderRadius: 22, padding: "26px 28px", display: "flex", gap: 18, alignItems: "center", flexWrap: "wrap",
           background: "linear-gradient(120deg,#ECFDF3,#EFF4FF)", border: `1px solid ${C.line}` }}>
           <div style={{ width: 54, height: 54, borderRadius: 15, background: "#fff", display: "grid", placeItems: "center", boxShadow: "0 6px 16px -10px #0f172a66" }}>
@@ -86,7 +86,7 @@ export default function Home() {
       </section>
 
       {/* subjects */}
-      <section className="page" style={{ maxWidth: 1080, margin: "0 auto", padding: "30px 22px 10px" }}>
+      <section className="page" style={{ maxWidth: 1300, margin: "0 auto", padding: "30px 22px 10px" }}>
         <SectionHead eyebrow="Предметы" title="Учись эффективно. Сдавай уверенно." />
         <div className="cards-3" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16 }}>
           {Object.entries(SUBJECTS).map(([key, s]) => (
@@ -113,7 +113,7 @@ export default function Home() {
       </section>
 
       {/* result CTA band */}
-      <section className="page" style={{ maxWidth: 1080, margin: "26px auto 10px", padding: "0 22px" }}>
+      <section className="page" style={{ maxWidth: 1300, margin: "26px auto 10px", padding: "0 22px" }}>
         <div style={{ borderRadius: 24, padding: "34px 30px", textAlign: "center",
           background: `linear-gradient(120deg,${C.blue},${C.purple})`, color: "#fff" }}>
           <Trophy size={36} style={{ marginBottom: 10 }} />

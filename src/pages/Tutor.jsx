@@ -59,7 +59,7 @@ export default function Tutor() {
   const visible = messages.filter((m) => !m.hidden);
 
   return (
-    <main className="chat-page" style={{ maxWidth: 1080, margin: "0 auto", padding: "16px 20px 22px", display: "flex", flexDirection: "column", height: "calc(100vh - 62px)" }}>
+    <main className="chat-page" style={{ maxWidth: 1300, margin: "0 auto", padding: "16px 20px 22px", display: "flex", flexDirection: "column", height: "calc(100vh - 62px)" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
         <button onClick={() => navigate(-1)} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", cursor: "pointer", color: C.mut, fontSize: 14, fontWeight: 600 }}>
           <ArrowLeft size={16} /> Назад

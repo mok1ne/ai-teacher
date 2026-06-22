@@ -38,7 +38,7 @@ export default function Parent() {
   }
 
   return (
-    <main className="page" style={{ maxWidth: 1080, margin: "0 auto", padding: "34px 20px 60px" }}>
+    <main className="page" style={{ maxWidth: 1300, margin: "0 auto", padding: "34px 20px 60px" }}>
       <button onClick={() => navigate("/progress")} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", cursor: "pointer", color: C.mut, fontSize: 14, fontWeight: 600, marginBottom: 16 }}>
         <ArrowLeft size={16} /> К прогрессу
       </button>

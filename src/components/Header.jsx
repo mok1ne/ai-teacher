@@ -22,7 +22,7 @@ export default function Header() {
   return (
     <header style={{ position: "sticky", top: 0, zIndex: 50, background: "rgba(255,255,255,.88)",
       backdropFilter: "blur(10px)", borderBottom: `1px solid ${C.line}` }}>
-      <div style={{ maxWidth: 1080, margin: "0 auto", padding: "13px 22px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ maxWidth: 1300, margin: "0 auto", padding: "13px 22px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <Link to="/" style={{ display: "flex", alignItems: "center", gap: 9, textDecoration: "none", color: C.ink }}>
           <div style={{ width: 34, height: 34, borderRadius: 10, background: `linear-gradient(135deg,${C.blue},${C.purple})`, display: "grid", placeItems: "center" }}>
             <Clock size={19} color="#fff" />
