@@ -1,6 +1,7 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Clock } from "lucide-react";
+
 import Button from "./ui/Button";
+import Logo from "./Logo";
 import { useApp } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
 import { C } from "../theme";
@@ -26,9 +27,7 @@ export default function Header() {
       backdropFilter: "blur(10px)", borderBottom: `1px solid ${C.line}` }}>
       <div style={{ maxWidth: 1300, margin: "0 auto", padding: "13px 22px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
         <Link to="/" style={{ display: "flex", alignItems: "center", gap: 9, textDecoration: "none", color: C.ink }}>
-          <div style={{ width: 34, height: 34, borderRadius: 10, background: `linear-gradient(135deg,${C.blue},${C.purple})`, display: "grid", placeItems: "center" }}>
-            <Clock size={19} color="#fff" />
-          </div>
+          <Logo size={34} />
           <span style={{ fontWeight: 800, fontSize: 17 }}>Время сдавать</span>
           <span style={{ fontSize: 10, fontWeight: 700, color: C.purple, background: C.lavBg, padding: "2px 7px", borderRadius: 20 }}>MVP</span>
         </Link>

@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Mail, ArrowRight, Clock, ShieldCheck } from "lucide-react";
+import { Mail, ArrowRight, ShieldCheck } from "lucide-react";
 import Button from "../components/ui/Button";
+import Logo from "../components/Logo";
 import { useAuth } from "../context/AuthContext";
 import { C } from "../theme";
 
@@ -25,9 +26,7 @@ export default function Login() {
   return (
     <main className="page" style={{ maxWidth: 460, margin: "0 auto", padding: "54px 20px" }}>
       <div style={{ textAlign: "center", marginBottom: 22 }}>
-        <div style={{ width: 52, height: 52, borderRadius: 15, background: `linear-gradient(135deg,${C.blue},${C.purple})`, display: "grid", placeItems: "center", margin: "0 auto 12px" }}>
-          <Clock size={26} color="#fff" />
-        </div>
+        <div style={{ margin: "0 auto 12px", width: 52 }}><Logo size={52} /></div>
         <h1 style={{ fontSize: 25, fontWeight: 800, margin: "0 0 6px" }}>Вход в «Время сдавать»</h1>
         <p style={{ fontSize: 14.5, color: C.mut, margin: 0 }}>Войдите, чтобы продолжить занятия, сохранять прогресс и оформить подписку.</p>
       </div>

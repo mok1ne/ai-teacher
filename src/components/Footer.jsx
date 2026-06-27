@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Clock } from "lucide-react";
+import Logo from "./Logo";
 import { C } from "../theme";
 
 const linkStyle = { textDecoration: "none", color: C.mut, fontSize: 13.5, lineHeight: 2 };
@@ -22,9 +22,7 @@ export default function Footer() {
         <div style={{ display: "flex", gap: 40, flexWrap: "wrap", justifyContent: "space-between" }}>
           <div style={{ maxWidth: 320 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 8 }}>
-              <div style={{ width: 30, height: 30, borderRadius: 9, background: `linear-gradient(135deg,${C.blue},${C.purple})`, display: "grid", placeItems: "center" }}>
-                <Clock size={17} color="#fff" />
-              </div>
+              <Logo size={30} />
               <span style={{ fontWeight: 800, fontSize: 16 }}>Время сдавать</span>
             </div>
             <p style={{ fontSize: 13.5, color: C.mut, lineHeight: 1.55, margin: 0 }}>
