@@ -14,7 +14,7 @@ export default function Progress() {
   const navigate = useNavigate();
   const { resultsBySubject, lastSubjectKey, studiedFor, boostedScoreFor, setTutorTarget } = useApp();
   const { user, logout } = useAuth();
-  const keys = Object.keys(resultsBySubject);
+  const keys = Object.keys(resultsBySubject).filter((k) => SUBJECTS[k]);
   const [open, setOpen] = useState(lastSubjectKey && resultsBySubject[lastSubjectKey] ? lastSubjectKey : (keys[0] || null));
 
   const openTutor = (topic, subjectKey) => {
