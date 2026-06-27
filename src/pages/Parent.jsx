@@ -1,26 +1,39 @@
 import { useState } from "react";
-import { useNavigate, Navigate } from "react-router-dom";
+import { useNavigate, useSearchParams, Navigate } from "react-router-dom";
 import { ArrowLeft, CheckCircle2, ShieldCheck } from "lucide-react";
 import Button from "../components/ui/Button";
 import { SUBJECTS } from "../data/subjects";
 import { useApp } from "../context/AppContext";
+import { useAuth } from "../context/AuthContext";
+import { authHeaders } from "../lib/auth";
 import { C } from "../theme";
 
 export default function Parent() {
   const navigate = useNavigate();
-  const { results, studied, boostedScore } = useApp();
+  const [params] = useSearchParams();
+  const { results, boostedScoreFor, studiedFor } = useApp();
+  const { user } = useAuth();
   const [picked, setPicked] = useState(null);
-  const [done, setDone] = useState(false);
+  const [done, setDone] = useState(params.get("paid") === "1");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
 
-  if (!results) return <Navigate to="/test" replace />;
-  const subject = SUBJECTS[results.subjectKey];
-  const score = boostedScore;
-
-  const tariffs = [
-    { name: "Базовый", price: 990, feats: ["1 предмет", "30 запросов в день", "Прогноз балла"], c: C.blue },
-    { name: "Стандарт", price: 1990, feats: ["3 предмета", "Безлимит запросов", "Контроль прогресса"], c: C.purple, best: true },
-    { name: "Премиум", price: 2990, feats: ["Все предметы", "Проверка сочинений", "Персональный план"], c: C.green },
-  ];
+  async function buy() {
+    if (!picked) return;
+    if (!user) { navigate("/login?next=/parent"); return; }
+    setBusy(true); setErr("");
+    try {
+      const r = await fetch("/api/payment/create", {
+        method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() },
+        body: JSON.stringify({ plan: picked }),
+      });
+      const d = await r.json();
+      if (d.confirmationUrl) { window.location.href = d.confirmationUrl; return; }
+      setErr("Не удалось создать платёж. Проверьте, что бэкенд и ключи ЮKassa настроены (см. README).");
+    } catch {
+      setErr("Не удалось связаться с сервером оплаты.");
+    } finally { setBusy(false); }
+  }
 
   if (done) {
     return (
@@ -28,14 +41,25 @@ export default function Parent() {
         <div style={{ width: 70, height: 70, borderRadius: 20, background: C.mintBg, display: "grid", placeItems: "center", margin: "0 auto 18px" }}>
           <CheckCircle2 size={38} style={{ color: C.green }} />
         </div>
-        <h1 style={{ fontSize: 26, fontWeight: 800, margin: "0 0 8px" }}>Спасибо! Это демо-режим</h1>
+        <h1 style={{ fontSize: 26, fontWeight: 800, margin: "0 0 8px" }}>Спасибо за оформление!</h1>
         <p style={{ fontSize: 15.5, color: C.mut, lineHeight: 1.55, margin: "0 0 24px" }}>
-          Здесь подключается приём оплаты и согласие родителя на обработку данных (152-ФЗ). В MVP оплата ещё не настроена — но весь путь от теста до подписки уже работает.
+          Если ключи ЮKassa настроены — подписка активируется после подтверждения платежа (через вебхук). Без ключей это демо-возврат, чтобы проверить весь путь.
         </p>
         <Button size="lg" onClick={() => navigate("/")}>На главную</Button>
       </main>
     );
   }
+
+  if (!results) return <Navigate to="/test" replace />;
+  const subject = SUBJECTS[results.subjectKey];
+  const score = boostedScoreFor(results.subjectKey);
+  const studiedCount = studiedFor(results.subjectKey).length;
+
+  const tariffs = [
+    { name: "Базовый", price: 990, feats: ["1 предмет", "30 запросов в день", "Прогноз балла"], c: C.blue },
+    { name: "Стандарт", price: 1990, feats: ["3 предмета", "Безлимит запросов", "Контроль прогресса"], c: C.purple, best: true },
+    { name: "Премиум", price: 2990, feats: ["Все предметы", "Проверка сочинений", "Персональный план"], c: C.green },
+  ];
 
   return (
     <main className="page" style={{ maxWidth: 1300, margin: "0 auto", padding: "34px 20px 60px" }}>
@@ -48,7 +72,7 @@ export default function Parent() {
         <div style={{ fontSize: 12.5, fontWeight: 700, color: C.soft, textTransform: "uppercase" }}>Отчёт о прогрессе для родителя</div>
         <div style={{ display: "flex", gap: 26, alignItems: "center", flexWrap: "wrap", marginTop: 10 }}>
           <div><div style={{ fontSize: 38, fontWeight: 800, color: C.blue }}>{score}</div><div style={{ fontSize: 13, color: C.mut }}>прогноз балла</div></div>
-          <div><div style={{ fontSize: 38, fontWeight: 800, color: C.green }}>{studied.length}</div><div style={{ fontSize: 13, color: C.mut }}>тем разобрано</div></div>
+          <div><div style={{ fontSize: 38, fontWeight: 800, color: C.green }}>{studiedCount}</div><div style={{ fontSize: 13, color: C.mut }}>тем разобрано</div></div>
           <div style={{ flex: 1, minWidth: 200, fontSize: 14.5, color: C.sub, lineHeight: 1.5 }}>
             Ребёнок уже занимается по предмету «{subject.name}» и видит реальный прогресс. Подписка открывает все предметы и проверку сочинений.
           </div>
@@ -82,11 +106,13 @@ export default function Parent() {
       </div>
 
       <div style={{ marginTop: 24, textAlign: "center" }}>
-        <Button size="lg" color={C.purple} disabled={!picked} onClick={() => setDone(true)}>
-          <ShieldCheck size={18} /> {picked ? `Оформить «${picked}»` : "Выберите тариф"}
+        <Button size="lg" color={C.purple} disabled={!picked || busy} onClick={buy}>
+          <ShieldCheck size={18} /> {busy ? "Создаём платёж…" : picked ? `Оформить «${picked}»` : "Выберите тариф"}
         </Button>
+        {err && <p style={{ fontSize: 13, color: "#B91C1C", marginTop: 12 }}>{err}</p>}
+        {!user && <p style={{ fontSize: 12.5, color: C.soft, marginTop: 10 }}>Для оформления нужен вход — мы предложим войти.</p>}
         <p style={{ fontSize: 12.5, color: C.soft, marginTop: 12, maxWidth: 460, marginLeft: "auto", marginRight: "auto", lineHeight: 1.5 }}>
-          Оформляя подписку, родитель даёт согласие на обработку персональных данных ребёнка (152-ФЗ). Демо-режим: реальная оплата не настроена.
+          Оформляя подписку, родитель даёт согласие на обработку персональных данных ребёнка (152-ФЗ). Оплата через ЮKassa.
         </p>
       </div>
     </main>

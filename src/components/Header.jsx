@@ -1,7 +1,8 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Clock } from "lucide-react";
+import { Clock, LogOut, User } from "lucide-react";
 import Button from "./ui/Button";
 import { useApp } from "../context/AppContext";
+import { useAuth } from "../context/AuthContext";
 import { C } from "../theme";
 
 function NavItem({ to, label, active, onClick }) {
@@ -17,12 +18,13 @@ export default function Header() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { setTutorTarget } = useApp();
+  const { user, logout } = useAuth();
   const is = (p) => (p === "/" ? pathname === "/" : pathname.startsWith(p));
 
   return (
     <header style={{ position: "sticky", top: 0, zIndex: 50, background: "rgba(255,255,255,.88)",
       backdropFilter: "blur(10px)", borderBottom: `1px solid ${C.line}` }}>
-      <div style={{ maxWidth: 1300, margin: "0 auto", padding: "13px 22px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ maxWidth: 1300, margin: "0 auto", padding: "13px 22px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
         <Link to="/" style={{ display: "flex", alignItems: "center", gap: 9, textDecoration: "none", color: C.ink }}>
           <div style={{ width: 34, height: 34, borderRadius: 10, background: `linear-gradient(135deg,${C.blue},${C.purple})`, display: "grid", placeItems: "center" }}>
             <Clock size={19} color="#fff" />
@@ -30,12 +32,32 @@ export default function Header() {
           <span style={{ fontWeight: 800, fontSize: 17 }}>Время сдавать</span>
           <span style={{ fontSize: 10, fontWeight: 700, color: C.purple, background: C.lavBg, padding: "2px 7px", borderRadius: 20 }}>MVP</span>
         </Link>
-        <nav className="desktop-nav" style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <NavItem to="/" label="Главная" active={is("/")} />
-          <NavItem to="/chat" label="Чат с ИИ" active={is("/chat")} onClick={() => setTutorTarget(null)} />
-          <NavItem to="/progress" label="Мой прогресс" active={is("/progress")} />
-          <Button size="sm" onClick={() => navigate("/test")}>Пройти тест</Button>
-        </nav>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <nav className="desktop-nav" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <NavItem to="/" label="Главная" active={is("/")} />
+            <NavItem to="/chat" label="Чат с ИИ" active={is("/chat")} onClick={() => setTutorTarget(null)} />
+            <NavItem to="/progress" label="Мой прогресс" active={is("/progress")} />
+            <Button size="sm" onClick={() => navigate("/test")}>Пройти тест</Button>
+          </nav>
+
+          {/* auth control — виден всегда, в т.ч. на мобильном */}
+          {user ? (
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13.5, fontWeight: 600, color: C.sub, maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                <span style={{ width: 28, height: 28, borderRadius: "50%", background: C.lavBg, color: C.purple, display: "grid", placeItems: "center", flexShrink: 0 }}>
+                  <User size={15} />
+                </span>
+                {user.name || "Профиль"}
+              </span>
+              <button onClick={logout} title="Выйти" style={{ background: "none", border: "none", cursor: "pointer", color: C.soft, display: "grid", placeItems: "center", padding: 4 }}>
+                <LogOut size={18} />
+              </button>
+            </div>
+          ) : (
+            <Button size="sm" variant="soft" color={C.purple} onClick={() => navigate("/login")}>Войти</Button>
+          )}
+        </div>
       </div>
     </header>
   );

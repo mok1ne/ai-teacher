@@ -10,13 +10,15 @@ import { C } from "../theme";
 
 export default function Progress() {
   const navigate = useNavigate();
-  const { results, studied, boostedScore, setTutorTarget } = useApp();
-  if (!results) return <Navigate to="/test" replace />;
+  const { resultsBySubject, studiedFor, boostedScoreFor, setTutorTarget } = useApp();
+  const keys = Object.keys(resultsBySubject);
+  if (keys.length === 0) return <Navigate to="/test" replace />;
 
-  const subject = SUBJECTS[results.subjectKey];
-  const score = boostedScore;
-  const remaining = results.weak.filter((t) => !studied.includes(t));
-  const openTutor = (t) => { setTutorTarget({ topic: t, exam: subject.level }); navigate("/chat"); };
+  const openTutor = (topic, subjectKey) => {
+    const s = SUBJECTS[subjectKey];
+    setTutorTarget({ topic, exam: s.level, subjectKey });
+    navigate("/chat");
+  };
 
   return (
     <main className="page" style={{ maxWidth: 1300, margin: "0 auto", padding: "34px 20px 60px" }}>
@@ -24,47 +26,74 @@ export default function Progress() {
 
       <ExamBlock />
 
-      <div className="cards-2" style={{ display: "grid", gridTemplateColumns: "1.1fr 1fr", gap: 16, marginBottom: 18 }}>
-        <div style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 20, padding: 22, textAlign: "center" }}>
-          <div style={{ fontSize: 12.5, fontWeight: 700, color: C.soft, textTransform: "uppercase" }}>Текущий прогноз</div>
-          <Gauge value={score} />
-          {score > results.predicted && (
-            <div style={{ fontSize: 13.5, fontWeight: 700, color: C.greenDk }}>
-              +{score - results.predicted} с момента старта ({results.predicted})
-            </div>
-          )}
-        </div>
-        <div style={{ display: "grid", gridTemplateRows: "1fr 1fr", gap: 16 }}>
-          <Stat Icon={Flame} c={C.amber} bg={C.creamBg} value={`${studied.length} ${studied.length === 1 ? "день" : "дн."}`} label="Серия занятий" />
-          <Stat Icon={Award} c={C.green} bg={C.mintBg} value={`${studied.length} из ${results.weak.length}`} label="Тем разобрано" />
-        </div>
-      </div>
+      {keys.map((subjectKey) => {
+        const r = resultsBySubject[subjectKey];
+        const s = SUBJECTS[subjectKey];
+        const score = boostedScoreFor(subjectKey);
+        const studied = studiedFor(subjectKey);
+        const delta = score - r.predicted;
 
-      <div style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 20, padding: 22 }}>
-        <h3 style={{ margin: "0 0 14px", fontSize: 18, fontWeight: 700 }}>Темы для подготовки</h3>
-        <div style={{ display: "grid", gap: 9 }}>
-          {results.weak.map((t) => {
-            const done = studied.includes(t);
-            return (
-              <div key={t} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10,
-                padding: "12px 14px", borderRadius: 12, background: done ? C.mintBg : "#F8FAFC", border: `1px solid ${done ? "#BBF7D0" : C.line}` }}>
-                <span style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14.5, fontWeight: 600, color: done ? C.greenDk : C.ink }}>
-                  {done ? <CheckCircle2 size={18} style={{ color: C.green }} /> : <span style={{ width: 18, height: 18, borderRadius: "50%", border: `2px solid ${C.soft}` }} />}
-                  {t}
-                </span>
-                {!done && <Button size="sm" color={C.purple} onClick={() => openTutor(t)}>Разобрать</Button>}
+        return (
+          <section key={subjectKey} style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 22, padding: "22px 24px", marginBottom: 18, boxShadow: "0 10px 30px -24px #0f172a55" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: s.bg, display: "grid", placeItems: "center" }}>
+                <s.Icon size={22} style={{ color: s.accent }} />
               </div>
-            );
-          })}
-        </div>
-      </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 18, fontWeight: 800 }}>{s.name}</div>
+                <div style={{ fontSize: 12.5, color: C.soft }}>{s.level}</div>
+              </div>
+              <Button size="sm" variant="soft" color={s.accent} onClick={() => navigate(`/test/${subjectKey}`)}>Пересдать</Button>
+            </div>
 
-      <div style={{ marginTop: 18, borderRadius: 20, padding: 24, background: `linear-gradient(120deg,${C.blue},${C.purple})`, color: "#fff",
+            <div className="cards-2" style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: 20, alignItems: "start" }}>
+              {/* score */}
+              <div style={{ textAlign: "center" }}>
+                <Gauge value={score} />
+                {delta > 0
+                  ? <div style={{ fontSize: 13.5, fontWeight: 700, color: C.greenDk }}>+{delta} с момента старта ({r.predicted})</div>
+                  : <div style={{ fontSize: 13, color: C.soft }}>Стартовый прогноз. Разбирай темы — балл вырастет.</div>}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 14 }}>
+                  <Stat Icon={Award} c={C.green} bg={C.mintBg} value={`${studied.length}/${r.weak.length}`} label="тем разобрано" />
+                  <Stat Icon={Flame} c={C.amber} bg={C.creamBg} value={`${r.correct}/${r.total}`} label="верно в тесте" />
+                </div>
+              </div>
+
+              {/* topics */}
+              <div>
+                <h3 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 700 }}>Темы для подготовки</h3>
+                {r.weak.length === 0 ? (
+                  <p style={{ fontSize: 14, color: C.greenDk, margin: 0 }}>Слабых тем нет — отличный результат! 🎉</p>
+                ) : (
+                  <div style={{ display: "grid", gap: 9 }}>
+                    {r.weak.map((t) => {
+                      const done = studied.includes(t);
+                      return (
+                        <div key={t} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10,
+                          padding: "12px 14px", borderRadius: 12, background: done ? C.mintBg : "#F8FAFC", border: `1px solid ${done ? "#BBF7D0" : C.line}` }}>
+                          <span style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14.5, fontWeight: 600, color: done ? C.greenDk : C.ink }}>
+                            {done ? <CheckCircle2 size={18} style={{ color: C.green }} /> : <span style={{ width: 18, height: 18, borderRadius: "50%", border: `2px solid ${C.soft}` }} />}
+                            {t}
+                          </span>
+                          {!done && <Button size="sm" color={C.purple} onClick={() => openTutor(t, subjectKey)}>Разобрать</Button>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+        );
+      })}
+
+      {/* parent handoff */}
+      <div style={{ marginTop: 8, borderRadius: 20, padding: 24, background: `linear-gradient(120deg,${C.blue},${C.purple})`, color: "#fff",
         display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
         <Users size={30} />
         <div style={{ flex: 1, minWidth: 240 }}>
           <h3 style={{ margin: "0 0 4px", fontSize: 18, fontWeight: 700 }}>Покажите прогресс родителю</h3>
-          <p style={{ margin: 0, fontSize: 14, opacity: .92 }}>{remaining.length > 0 ? "Откройте все предметы и проверку сочинений — оформит родитель в один тап." : "Все темы разобраны! Откройте новые предметы вместе с родителем."}</p>
+          <p style={{ margin: 0, fontSize: 14, opacity: .92 }}>Откройте все предметы и проверку сочинений — оформит родитель в один тап.</p>
         </div>
         <Button color="#fff" style={{ color: C.blue }} onClick={() => navigate("/parent")}>Поделиться <ArrowRight size={16} /></Button>
       </div>

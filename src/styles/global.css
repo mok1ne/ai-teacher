@@ -19,6 +19,9 @@ a { color: inherit; }
 /* bottom mobile nav: hidden on desktop */
 .mobile-nav { display: none; }
 
+/* sticky footer: контент растягивается, футер уходит вниз экрана */
+.app-shell { min-height: 100vh; }
+
 /* ===== tablet: collapse the two-column layouts ===== */
 @media (max-width: 920px) {
   .hero-grid { grid-template-columns: 1fr !important; gap: 28px !important; }
@@ -33,6 +36,7 @@ a { color: inherit; }
   .desktop-nav { display: none !important; }
   .mobile-nav { display: flex !important; }
   body { padding-bottom: 60px; }            /* room for the fixed bottom nav */
+  .app-shell { min-height: calc(100vh - 60px); } /* футер над мобильным навбаром */
   .chat-page { height: calc(100vh - 62px - 60px) !important; } /* keep input above nav */
 }
 

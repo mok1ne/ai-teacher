@@ -6,18 +6,30 @@ import ChatBubble from "../components/ChatBubble";
 import { callClaude } from "../lib/api";
 import { getSource } from "../data/knowledgeBase";
 import { useApp } from "../context/AppContext";
+import { useAuth } from "../context/AuthContext";
+import { PLAN_LIMITS } from "../config";
 import { C } from "../theme";
 
 export default function Tutor() {
   const navigate = useNavigate();
-  const { tutorTarget, studied, markStudied, studentSummary, remaining, limit, canSend, useOneMessage } = useApp();
+  const { tutorTarget, studiedFor, markStudied, studentSummaryFor, usedToday, useOneMessage } = useApp();
+  const { user } = useAuth();
+
+  const plan = user?.plan || "anon";
+  const limit = PLAN_LIMITS[plan] ?? PLAN_LIMITS.anon;
+  const [serverBlocked, setServerBlocked] = useState(false);
+  const remaining = Math.max(0, limit - usedToday);
+  const canSend = remaining > 0 && !serverBlocked;
+  const limitReached = !canSend;
+  const unlimited = limit >= 100000;
 
   const general = !tutorTarget;
   const topic = tutorTarget?.topic || "Подготовка к ЕГЭ и ОГЭ";
   const examName = tutorTarget?.exam || "ЕГЭ/ОГЭ";
+  const subjectKey = tutorTarget?.subjectKey || null;
   const source = general ? null : getSource(topic);
-  const isStudied = studied.includes(topic);
-  const limitReached = remaining <= 0;
+  const studentSummary = subjectKey ? studentSummaryFor(subjectKey) : null;
+  const isStudied = subjectKey ? studiedFor(subjectKey).includes(topic) : false;
 
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
@@ -42,12 +54,13 @@ export default function Tutor() {
 
   async function run(msgs) {
     setBusy(true); setError(false);
-    useOneMessage(); // расходуем сообщение из дневного лимита
+    useOneMessage(); // расходуем сообщение из дневного лимита (клиентский счётчик)
     try {
       const reply = await callClaude(msgs.filter((m) => m.content), topic, examName, source, studentSummary);
       setMessages([...msgs, { role: "assistant", content: reply }]);
     } catch (e) {
-      setError(true); setMessages(msgs);
+      if (e && e.code === "rate_limited") { setServerBlocked(true); setMessages(msgs); }
+      else { setError(true); setMessages(msgs); }
     } finally { setBusy(false); }
   }
   function send() {
@@ -96,7 +109,7 @@ export default function Tutor() {
 
           {!general && !isStudied && visible.length > 0 && !busy && (
             <div style={{ display: "flex", justifyContent: "center", marginBottom: 10 }}>
-              <Button size="sm" variant="soft" color={C.green} onClick={() => markStudied(topic)}>
+              <Button size="sm" variant="soft" color={C.green} onClick={() => markStudied(subjectKey, topic)}>
                 <CheckCircle2 size={15} /> Я разобрался — отметить тему изученной (+2 балла к прогнозу)
               </Button>
             </div>
@@ -110,16 +123,29 @@ export default function Tutor() {
           {limitReached ? (
             <div style={{ background: C.lavBg, border: `1.5px solid ${C.purple}33`, borderRadius: 14, padding: "14px 16px", display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
               <Lock size={20} style={{ color: C.purple }} />
-              <div style={{ flex: 1, minWidth: 200, fontSize: 13.5, color: C.sub }}>
-                Дневной лимит бесплатной версии исчерпан ({limit} сообщений). Откройте безлимит, чтобы продолжить.
-              </div>
-              <Button size="sm" color={C.purple} onClick={() => navigate("/parent")}>Открыть безлимит</Button>
+              {!user ? (
+                <>
+                  <div style={{ flex: 1, minWidth: 200, fontSize: 13.5, color: C.sub }}>
+                    Бесплатные сообщения без входа закончились. Войдите через VK или почту, чтобы продолжить.
+                  </div>
+                  <Button size="sm" color={C.purple} onClick={() => navigate("/login?next=/chat")}>Войти</Button>
+                </>
+              ) : (
+                <>
+                  <div style={{ flex: 1, minWidth: 200, fontSize: 13.5, color: C.sub }}>
+                    Дневной лимит тарифа исчерпан ({limit} сообщений). Откройте безлимит, чтобы продолжить.
+                  </div>
+                  <Button size="sm" color={C.purple} onClick={() => navigate("/parent")}>Открыть безлимит</Button>
+                </>
+              )}
             </div>
           ) : (
             <>
-              <div style={{ fontSize: 12, color: C.soft, marginBottom: 6, textAlign: "right" }}>
-                Осталось {remaining} из {limit} сообщений сегодня
-              </div>
+              {!unlimited && (
+                <div style={{ fontSize: 12, color: C.soft, marginBottom: 6, textAlign: "right" }}>
+                  Осталось {remaining} из {limit} сообщений сегодня{!user ? " · войдите, чтобы получить больше" : ""}
+                </div>
+              )}
               <div style={{ display: "flex", gap: 10, alignItems: "flex-end" }}>
                 <textarea value={input} onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}

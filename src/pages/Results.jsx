@@ -15,7 +15,7 @@ export default function Results() {
   const subject = SUBJECTS[results.subjectKey];
   const { predicted, correct, total, weak, strong } = results;
 
-  const openTutor = (topic) => { setTutorTarget({ topic, exam: subject.level }); navigate("/chat"); };
+  const openTutor = (topic) => { setTutorTarget({ topic, exam: subject.level, subjectKey: results.subjectKey }); navigate("/chat"); };
 
   return (
     <main className="page" style={{ maxWidth: 1300, margin: "0 auto", padding: "34px 20px 60px" }}>

@@ -6,6 +6,8 @@
  * Чтобы сменить модель на YandexGPT / GigaChat — меняется только прокси
  * (api/chat.js), эта функция остаётся прежней.
  */
+import { authHeaders } from "./auth";
+
 const ENDPOINT = import.meta.env.VITE_API_URL || "/api/chat";
 
 export async function callClaude(apiMessages, topic, examName, source, studentContext) {
@@ -43,7 +45,7 @@ export async function callClaude(apiMessages, topic, examName, source, studentCo
 
   const res = await fetch(ENDPOINT, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify({
       model: "claude-sonnet-4-6", // качество; для экономии — "claude-haiku-4-5-20251001"
       max_tokens: 1000,
@@ -51,6 +53,7 @@ export async function callClaude(apiMessages, topic, examName, source, studentCo
       messages: apiMessages.map((m) => ({ role: m.role, content: m.content })),
     }),
   });
+  if (res.status === 429) { const e = new Error("rate_limited"); e.code = "rate_limited"; throw e; }
   if (!res.ok) throw new Error("network");
   const data = await res.json();
   return data.content.filter((b) => b.type === "text").map((b) => b.text).join("\n").trim();
