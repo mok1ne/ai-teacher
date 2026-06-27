@@ -41,10 +41,13 @@ export function AppProvider({ children }) {
       `Темы для улучшения: ${r.weak.length ? r.weak.join(", ") : "—"}.`;
   };
 
-  // --- дата экзамена и уведомления ---
-  const [examDate, setExamDateState] = useState(() => store.get("vs_examDate", null));
+  // --- даты экзамена ПО ПРЕДМЕТАМ и уведомления ---
+  const [examDates, setExamDatesState] = useState(() => store.get("vs_examDates", {}));
   const [notifyEnabled, setNotifyState] = useState(() => store.get("vs_notify", false));
-  const setExamDate = (d) => { setExamDateState(d); store.set("vs_examDate", d); };
+  const examDateFor = (subjectKey) => examDates[subjectKey] || null;
+  const setExamDate = (subjectKey, d) => {
+    setExamDatesState((m) => { const n = { ...m, [subjectKey]: d }; store.set("vs_examDates", n); return n; });
+  };
   const setNotifyEnabled = (v) => { setNotifyState(v); store.set("vs_notify", v); };
 
   // --- дневной лимит сообщений (клиентский счётчик; сервер — главный страж) ---
@@ -67,7 +70,7 @@ export function AppProvider({ children }) {
     resultsBySubject, results, lastSubjectKey, setResults,
     studiedFor, markStudied, boostedScoreFor, studentSummaryFor,
     tutorTarget, setTutorTarget,
-    examDate, setExamDate, notifyEnabled, setNotifyEnabled,
+    examDates, examDateFor, setExamDate, notifyEnabled, setNotifyEnabled,
     usedToday, useOneMessage,
   };
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

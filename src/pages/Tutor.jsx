@@ -13,7 +13,7 @@ import { C } from "../theme";
 export default function Tutor() {
   const navigate = useNavigate();
   const { tutorTarget, studiedFor, markStudied, studentSummaryFor, usedToday, useOneMessage } = useApp();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
 
   const plan = user?.plan || "anon";
   const limit = PLAN_LIMITS[plan] ?? PLAN_LIMITS.anon;
@@ -40,15 +40,17 @@ export default function Tutor() {
 
   useEffect(() => {
     if (started.current) return;
+    if (loading) return;        // ждём проверки авторизации
+    if (!user) return;          // гость — чат закрыт
     started.current = true;
-    if (limitReached) return; // лимит исчерпан — стартовое объяснение не запускаем
+    if (limitReached) return;   // лимит исчерпан — стартовое объяснение не запускаем
     const seed = { role: "user", hidden: true,
       content: general
         ? `Поприветствуй ученика как ИИ-репетитор сервиса «Время сдавать». Коротко и тепло скажи, что помогаешь готовиться к ЕГЭ и ОГЭ по любому предмету и теме, и спроси, с чего хочет начать.`
         : `Это твоя первая реплика по теме. Сначала коротко и тепло поддержи ученика: опираясь на контекст о нём, отметь, что у него уже получается, и спокойно скажи, что эту тему мы сейчас разберём вместе — без осуждения. Затем понятно объясни тему «${topic}» для подготовки к ${examName} с коротким примером и закончи одним тренировочным вопросом.` };
     run([seed]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loading, user]);
 
   useEffect(() => { scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: "smooth" }); }, [messages, busy]);
 
@@ -70,6 +72,28 @@ export default function Tutor() {
     setMessages(next); setInput(""); run(next);
   }
   const visible = messages.filter((m) => !m.hidden);
+
+  if (loading) {
+    return (
+      <main className="page" style={{ maxWidth: 1300, margin: "0 auto", padding: "80px 20px", textAlign: "center", color: C.mut }}>
+        <Loader2 size={28} className="spin" style={{ color: C.blue }} />
+      </main>
+    );
+  }
+  if (!user) {
+    return (
+      <main className="page" style={{ maxWidth: 460, margin: "0 auto", padding: "60px 20px", textAlign: "center" }}>
+        <div style={{ width: 60, height: 60, borderRadius: 17, background: `linear-gradient(135deg,${C.blue},${C.purple})`, display: "grid", placeItems: "center", margin: "0 auto 16px" }}>
+          <Brain size={28} color="#fff" />
+        </div>
+        <h1 style={{ fontSize: 24, fontWeight: 800, margin: "0 0 8px" }}>Чат доступен после входа</h1>
+        <p style={{ fontSize: 15, color: C.mut, lineHeight: 1.55, margin: "0 0 22px" }}>
+          Войдите через VK или почту, чтобы заниматься с ИИ-репетитором и сохранять прогресс.
+        </p>
+        <Button size="lg" onClick={() => navigate("/login?next=/chat")}>Войти и продолжить</Button>
+      </main>
+    );
+  }
 
   return (
     <main className="chat-page" style={{ maxWidth: 1300, margin: "0 auto", padding: "16px 20px 22px", display: "flex", flexDirection: "column", height: "calc(100vh - 62px)" }}>

@@ -19,7 +19,7 @@ export default function Results() {
 
   return (
     <main className="page" style={{ maxWidth: 1300, margin: "0 auto", padding: "34px 20px 60px" }}>
-      <ExamBlock />
+      <ExamBlock subjectKey={results.subjectKey} />
       <div className="res-2col" style={{ display: "grid", gridTemplateColumns: "360px 1fr", gap: 24, alignItems: "start" }}>
         {/* score card */}
         <div style={{ textAlign: "center", background: "#fff", border: `1px solid ${C.line}`, borderRadius: 22, padding: "28px 22px", boxShadow: "0 14px 40px -28px #0f172a66" }}>

@@ -2,12 +2,15 @@ import { useState } from "react";
 import { CalendarClock, BellRing, CheckCircle2, Pencil } from "lucide-react";
 import Button from "./ui/Button";
 import { useApp } from "../context/AppContext";
+import { SUBJECTS } from "../data/subjects";
 import { daysUntil, pluralDays } from "../lib/date";
 import { C } from "../theme";
 
-/* Единый блок: если даты нет — форма ввода; если есть — таймер + «Изменить дату». */
-export function ExamBlock() {
-  const { examDate, setExamDate, setNotifyEnabled } = useApp();
+/* Дата экзамена для КОНКРЕТНОГО предмета: ввод/редактирование + таймер. */
+export function ExamBlock({ subjectKey }) {
+  const { examDateFor, setExamDate, setNotifyEnabled } = useApp();
+  const examDate = examDateFor(subjectKey);
+  const subjectName = SUBJECTS[subjectKey]?.name || "";
   const [editing, setEditing] = useState(!examDate);
   const [date, setDate] = useState(examDate || "");
   const [perm, setPerm] = useState(typeof Notification !== "undefined" ? Notification.permission : "unsupported");
@@ -23,49 +26,46 @@ export function ExamBlock() {
   const requestNotif = () => {
     if (typeof Notification === "undefined") { setPerm("unsupported"); return; }
     try {
-      // современные браузеры возвращают Promise, старые — используют callback
       const r = Notification.requestPermission(applyPerm);
       if (r && typeof r.then === "function") r.then(applyPerm);
     } catch { setPerm("unsupported"); }
   };
 
-  const save = () => { if (date) { setExamDate(date); setEditing(false); } };
+  const save = () => { if (date) { setExamDate(subjectKey, date); setEditing(false); } };
   const cancel = () => { setDate(examDate); setEditing(false); };
 
-  // ----- форма ввода/редактирования -----
   if (editing) {
     const notifLabel =
       perm === "granted" ? <><CheckCircle2 size={16} /> Уведомления включены</>
       : perm === "denied" ? <><BellRing size={16} /> Заблокировано в браузере</>
       : <><BellRing size={16} /> Разрешить напоминания</>;
-    const notifColor = perm === "granted" ? C.green : C.purple;
     const notifDisabled = perm === "unsupported" || perm === "denied";
 
     return (
-      <div style={{ background: "#fff", border: `1.5px solid ${C.blue}33`, borderRadius: 20, padding: "22px 24px", marginBottom: 24, boxShadow: "0 14px 40px -30px #0f172a66" }}>
+      <div style={{ background: "#fff", border: `1.5px solid ${C.blue}33`, borderRadius: 18, padding: "18px 20px", marginBottom: 16 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
-          <div style={{ width: 40, height: 40, borderRadius: 12, background: C.blueBg, display: "grid", placeItems: "center" }}>
-            <CalendarClock size={21} style={{ color: C.blue }} />
-          </div>
-          <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>{examDate ? "Изменить дату экзамена" : "Когда твой экзамен?"}</h3>
+          <CalendarClock size={20} style={{ color: C.blue }} />
+          <h3 style={{ margin: 0, fontSize: 16.5, fontWeight: 700 }}>
+            {examDate ? "Изменить дату экзамена" : "Когда экзамен"}{subjectName ? ` по предмету «${subjectName}»?` : "?"}
+          </h3>
         </div>
-        <p style={{ fontSize: 14, color: C.mut, margin: "0 0 14px" }}>
-          Покажем, сколько дней осталось, и будем напоминать о подготовке — чтобы ты успел без спешки.
+        <p style={{ fontSize: 13.5, color: C.mut, margin: "0 0 12px" }}>
+          Покажем обратный отсчёт и будем напоминать о подготовке.
         </p>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
           <input type="date" min={today} value={date} onChange={(e) => setDate(e.target.value)}
-            style={{ padding: "11px 14px", borderRadius: 12, border: `1.5px solid ${C.line}`, fontSize: 15, fontFamily: "inherit", color: C.ink, outline: "none" }} />
-          <Button variant="soft" color={notifColor} onClick={requestNotif} disabled={notifDisabled}>{notifLabel}</Button>
-          <Button onClick={save} disabled={!date}>Сохранить</Button>
-          {examDate && <Button variant="ghost" color={C.mut} onClick={cancel}>Отмена</Button>}
+            style={{ padding: "10px 13px", borderRadius: 11, border: `1.5px solid ${C.line}`, fontSize: 14.5, fontFamily: "inherit", color: C.ink, outline: "none" }} />
+          <Button size="sm" variant="soft" color={perm === "granted" ? C.green : C.purple} onClick={requestNotif} disabled={notifDisabled}>{notifLabel}</Button>
+          <Button size="sm" onClick={save} disabled={!date}>Сохранить</Button>
+          {examDate && <Button size="sm" variant="ghost" color={C.mut} onClick={cancel}>Отмена</Button>}
         </div>
         {perm === "denied" && (
-          <p style={{ fontSize: 12.5, color: C.amberDk, margin: "10px 0 0" }}>
-            Уведомления отключены в настройках браузера для этого сайта — разрешите их в адресной строке (значок 🔒). Таймер на странице будет виден в любом случае.
+          <p style={{ fontSize: 12, color: C.amberDk, margin: "8px 0 0" }}>
+            Уведомления отключены для сайта в браузере — включите их в адресной строке (🔒). Таймер всё равно виден.
           </p>
         )}
         {perm === "unsupported" && (
-          <p style={{ fontSize: 12.5, color: C.mut, margin: "10px 0 0" }}>
+          <p style={{ fontSize: 12, color: C.mut, margin: "8px 0 0" }}>
             Уведомления недоступны в этом режиме (нужен https или localhost). Таймер всё равно работает.
           </p>
         )}
@@ -73,7 +73,6 @@ export function ExamBlock() {
     );
   }
 
-  // ----- таймер -----
   const d = daysUntil(examDate);
   const passed = d < 0;
   const urgent = d >= 0 && d <= 14;
@@ -81,22 +80,22 @@ export function ExamBlock() {
   const bg = passed ? "#F1F5F9" : urgent ? C.creamBg : C.blueBg;
 
   return (
-    <div style={{ background: bg, borderRadius: 16, padding: "16px 20px", marginBottom: 20, display: "flex", alignItems: "center", gap: 14 }}>
-      <CalendarClock size={26} style={{ color: accent, flexShrink: 0 }} />
+    <div style={{ background: bg, borderRadius: 14, padding: "14px 18px", marginBottom: 16, display: "flex", alignItems: "center", gap: 14 }}>
+      <CalendarClock size={24} style={{ color: accent, flexShrink: 0 }} />
       <div style={{ flex: 1, minWidth: 0 }}>
         {passed ? (
-          <div style={{ fontSize: 16, fontWeight: 700, color: accent }}>Дата экзамена уже прошла — удачи на новом старте!</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: accent }}>Дата экзамена прошла — удачи на новом старте!</div>
         ) : d === 0 ? (
-          <div style={{ fontSize: 16, fontWeight: 700, color: accent }}>Экзамен сегодня — ты готовился, у тебя получится! 💪</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: accent }}>Экзамен сегодня — у тебя получится! 💪</div>
         ) : (
           <>
-            <div style={{ fontSize: 22, fontWeight: 800, color: accent }}>До экзамена {d} {pluralDays(d)}</div>
-            <div style={{ fontSize: 13, color: C.mut }}>{urgent ? "Финишная прямая — занимайся понемногу каждый день." : "Есть время подготовиться спокойно. Главное — регулярность."}</div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: accent }}>До экзамена {d} {pluralDays(d)}</div>
+            <div style={{ fontSize: 12.5, color: C.mut }}>{urgent ? "Финишная прямая — занимайся понемногу каждый день." : "Есть время подготовиться спокойно."}</div>
           </>
         )}
       </div>
       <Button size="sm" variant="soft" color={accent} onClick={() => { setDate(examDate); setEditing(true); }} style={{ flexShrink: 0 }}>
-        <Pencil size={14} /> Изменить дату
+        <Pencil size={14} /> Изменить
       </Button>
     </div>
   );
