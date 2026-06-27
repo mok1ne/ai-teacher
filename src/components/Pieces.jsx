@@ -31,3 +31,22 @@ export function Stat({ Icon, c, bg, value, label }) {
     </div>
   );
 }
+
+export function LevelTabs({ value, onChange }) {
+  const tabs = [["ege", "ЕГЭ"], ["oge", "ОГЭ"]];
+  return (
+    <div style={{ display: "inline-flex", background: "#EEF2F8", borderRadius: 12, padding: 4, gap: 4 }}>
+      {tabs.map(([v, label]) => {
+        const active = value === v;
+        return (
+          <button key={v} onClick={() => onChange(v)}
+            style={{ border: "none", cursor: "pointer", padding: "8px 20px", borderRadius: 9, fontSize: 14, fontWeight: 700,
+              background: active ? "#fff" : "transparent", color: active ? C.blue : C.mut,
+              boxShadow: active ? "0 2px 8px -4px #0f172a55" : "none", transition: "all .15s" }}>
+            {label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   BookOpen, Target, TrendingUp, ArrowRight, MessageCircle, ShieldCheck,
@@ -5,14 +6,15 @@ import {
 } from "lucide-react";
 import Button from "../components/ui/Button";
 import HeroArt from "../components/HeroArt";
-import { Pill, SectionHead } from "../components/Pieces";
-import { SUBJECTS } from "../data/subjects";
+import { Pill, SectionHead, LevelTabs } from "../components/Pieces";
+import { SUBJECTS, subjectsForLevel } from "../data/subjects";
 import { useApp } from "../context/AppContext";
 import { C } from "../theme";
 
 export default function Home() {
   const navigate = useNavigate();
   const { setTutorTarget } = useApp();
+  const [level, setLevel] = useState("ege");
   const openChat = () => { setTutorTarget(null); navigate("/chat"); };
 
   return (
@@ -87,9 +89,12 @@ export default function Home() {
 
       {/* subjects */}
       <section className="page" style={{ maxWidth: 1300, margin: "0 auto", padding: "30px 22px 10px" }}>
-        <SectionHead eyebrow="Предметы" title="Учись эффективно. Сдавай уверенно." />
+        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+          <SectionHead eyebrow="Предметы" title="Учись эффективно. Сдавай уверенно." />
+          <div style={{ marginBottom: 20 }}><LevelTabs value={level} onChange={setLevel} /></div>
+        </div>
         <div className="cards-3" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16 }}>
-          {Object.entries(SUBJECTS).map(([key, s]) => (
+          {subjectsForLevel(level).map(([key, s]) => (
             <div key={key} onClick={() => s.available && navigate(`/test/${key}`)}
               style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 18, padding: 20,
                 cursor: s.available ? "pointer" : "default", opacity: s.available ? 1 : 0.62,

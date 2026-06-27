@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Clock, LogOut, User } from "lucide-react";
+import { Clock } from "lucide-react";
 import Button from "./ui/Button";
 import { useApp } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
@@ -18,7 +18,7 @@ export default function Header() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { setTutorTarget } = useApp();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const is = (p) => (p === "/" ? pathname === "/" : pathname.startsWith(p));
 
   return (
@@ -41,20 +41,8 @@ export default function Header() {
             <Button size="sm" onClick={() => navigate("/test")}>Пройти тест</Button>
           </nav>
 
-          {/* auth control — виден всегда, в т.ч. на мобильном */}
-          {user ? (
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13.5, fontWeight: 600, color: C.sub, maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                <span style={{ width: 28, height: 28, borderRadius: "50%", background: C.lavBg, color: C.purple, display: "grid", placeItems: "center", flexShrink: 0 }}>
-                  <User size={15} />
-                </span>
-                {user.name || "Профиль"}
-              </span>
-              <button onClick={logout} title="Выйти" style={{ background: "none", border: "none", cursor: "pointer", color: C.soft, display: "grid", placeItems: "center", padding: 4 }}>
-                <LogOut size={18} />
-              </button>
-            </div>
-          ) : (
+          {/* профиль и выход теперь в «Мой прогресс»; здесь только вход для гостей */}
+          {!user && (
             <Button size="sm" variant="soft" color={C.purple} onClick={() => navigate("/login")}>Войти</Button>
           )}
         </div>

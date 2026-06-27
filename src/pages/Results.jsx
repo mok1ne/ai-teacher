@@ -23,7 +23,7 @@ export default function Results() {
       <div className="res-2col" style={{ display: "grid", gridTemplateColumns: "360px 1fr", gap: 24, alignItems: "start" }}>
         {/* score card */}
         <div style={{ textAlign: "center", background: "#fff", border: `1px solid ${C.line}`, borderRadius: 22, padding: "28px 22px", boxShadow: "0 14px 40px -28px #0f172a66" }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: C.soft, textTransform: "uppercase", letterSpacing: ".05em" }}>Ваш прогноз балла · {subject.name}</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.soft, textTransform: "uppercase", letterSpacing: ".05em" }}>Ваш прогноз балла · {subject.name} · {subject.level}</div>
           <div style={{ display: "flex", justifyContent: "center", margin: "6px 0" }}><Gauge value={predicted} /></div>
           <p style={{ fontSize: 14.5, color: C.mut, margin: "0 0 18px" }}>
             Верных ответов: <b style={{ color: C.ink }}>{correct} из {total}</b>. Это ориентировочный стартовый балл — с разбором тем он будет расти.

@@ -1,15 +1,25 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { SUBJECTS } from "../data/subjects";
+import { subjectsForLevel } from "../data/subjects";
+import { LevelTabs } from "../components/Pieces";
 import { C } from "../theme";
 
 export default function SubjectPicker() {
   const navigate = useNavigate();
+  const [level, setLevel] = useState("ege");
+  const items = subjectsForLevel(level);
+
   return (
     <main className="page" style={{ maxWidth: 1300, margin: "0 auto", padding: "44px 20px" }}>
       <h1 style={{ fontSize: 30, fontWeight: 800, margin: "0 0 6px" }}>Выберите предмет для диагностики</h1>
-      <p style={{ fontSize: 15.5, color: C.mut, margin: "0 0 26px" }}>Короткий тест покажет ваш прогноз балла и слабые темы. Без регистрации.</p>
+      <p style={{ fontSize: 15.5, color: C.mut, margin: "0 0 18px" }}>Короткий тест покажет ваш прогноз балла и слабые темы. Без регистрации.</p>
+
+      <div style={{ marginBottom: 22 }}>
+        <LevelTabs value={level} onChange={setLevel} />
+      </div>
+
       <div className="cards-2" style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 14 }}>
-        {Object.entries(SUBJECTS).map(([key, s]) => (
+        {items.map(([key, s]) => (
           <div key={key} onClick={() => s.available && navigate(`/test/${key}`)}
             style={{ background: "#fff", border: `1.5px solid ${s.available ? s.accent + "33" : C.line}`, borderRadius: 16, padding: 18,
               cursor: s.available ? "pointer" : "default", opacity: s.available ? 1 : 0.55, display: "flex", alignItems: "center", gap: 13 }}>

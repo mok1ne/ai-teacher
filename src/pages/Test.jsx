@@ -1,9 +1,18 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useParams, useNavigate, Navigate } from "react-router-dom";
 import { ArrowLeft, Clock } from "lucide-react";
 import { SUBJECTS } from "../data/subjects";
 import { useApp } from "../context/AppContext";
 import { C } from "../theme";
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
 export default function Test() {
   const { subjectKey } = useParams();
@@ -14,15 +23,25 @@ export default function Test() {
   const [qIndex, setQIndex] = useState(0);
   const [answers, setAnswers] = useState([]);
 
+  // Перемешиваем варианты для каждого вопроса один раз (на старте теста),
+  // чтобы правильный ответ не оказывался всегда на одной позиции.
+  const questions = useMemo(() => {
+    if (!subject) return [];
+    return subject.questions.map((q) => {
+      const order = shuffle(q.options.map((_, i) => i));
+      return { ...q, options: order.map((i) => q.options[i]), correct: order.indexOf(q.correct) };
+    });
+  }, [subjectKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
   if (!subject || !subject.available) return <Navigate to="/test" replace />;
 
-  const q = subject.questions[qIndex];
-  const total = subject.questions.length;
+  const q = questions[qIndex];
+  const total = questions.length;
   const pct = Math.round((qIndex / total) * 100);
 
   function finish(allAnswers) {
     const stats = {};
-    subject.questions.forEach((qq, idx) => {
+    questions.forEach((qq, idx) => {
       if (!stats[qq.topic]) stats[qq.topic] = { c: 0, t: 0 };
       stats[qq.topic].t++;
       if (allAnswers[idx] === qq.correct) stats[qq.topic].c++;
@@ -32,7 +51,8 @@ export default function Test() {
       correct += s.c;
       if (s.c < s.t) weak.push(topic); else strong.push(topic);
     });
-    const predicted = Math.round(30 + (correct / total) * 70);
+    // минимум 30 баллов даже при 0 верных, максимум 100 при всех верных
+    const predicted = Math.round((correct / total) * 100);
     setResults({ subjectKey, predicted, correct, total, weak, strong });
     navigate("/results");
   }
@@ -52,7 +72,7 @@ export default function Test() {
           <button onClick={back} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", cursor: "pointer", color: C.mut, fontSize: 14, fontWeight: 600 }}>
             <ArrowLeft size={16} /> Назад
           </button>
-          <span style={{ fontSize: 13.5, fontWeight: 700, color: subject.accent }}>{subject.name}</span>
+          <span style={{ fontSize: 13.5, fontWeight: 700, color: subject.accent }}>{subject.name} · {subject.level}</span>
           <span style={{ fontSize: 13.5, color: C.soft, fontWeight: 600 }}>{qIndex + 1} / {total}</span>
         </div>
         <div style={{ height: 8, background: C.line, borderRadius: 20, overflow: "hidden", marginBottom: 26 }}>

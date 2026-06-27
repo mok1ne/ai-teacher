@@ -1,21 +1,21 @@
 import { useState } from "react";
-import { useNavigate, Navigate } from "react-router-dom";
-import { Flame, Award, CheckCircle2, Users, ChevronDown, ChevronUp } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Flame, Award, CheckCircle2, Users, ChevronDown, ChevronUp, LogOut, Mail, ClipboardList } from "lucide-react";
 import Button from "../components/ui/Button";
 import Gauge from "../components/ui/Gauge";
 import { Stat } from "../components/Pieces";
 import { ExamBlock } from "../components/ExamReminder";
 import { SUBJECTS } from "../data/subjects";
 import { useApp } from "../context/AppContext";
+import { useAuth } from "../context/AuthContext";
 import { C } from "../theme";
 
 export default function Progress() {
   const navigate = useNavigate();
   const { resultsBySubject, lastSubjectKey, studiedFor, boostedScoreFor, setTutorTarget } = useApp();
+  const { user, logout } = useAuth();
   const keys = Object.keys(resultsBySubject);
   const [open, setOpen] = useState(lastSubjectKey && resultsBySubject[lastSubjectKey] ? lastSubjectKey : (keys[0] || null));
-
-  if (keys.length === 0) return <Navigate to="/test" replace />;
 
   const openTutor = (topic, subjectKey) => {
     const s = SUBJECTS[subjectKey];
@@ -25,7 +25,38 @@ export default function Progress() {
 
   return (
     <main className="page" style={{ maxWidth: 1300, margin: "0 auto", padding: "34px 20px 60px" }}>
-      <h1 style={{ fontSize: 28, fontWeight: 800, margin: "0 0 6px" }}>Мой прогресс</h1>
+      <h1 style={{ fontSize: 28, fontWeight: 800, margin: "0 0 14px" }}>Мой прогресс</h1>
+
+      {/* профиль / вход */}
+      {user ? (
+        <div style={{ display: "flex", alignItems: "center", gap: 12, background: "#fff", border: `1px solid ${C.line}`, borderRadius: 16, padding: "14px 18px", marginBottom: 18, flexWrap: "wrap" }}>
+          <div style={{ width: 42, height: 42, borderRadius: "50%", background: C.lavBg, color: C.purple, display: "grid", placeItems: "center", flexShrink: 0, fontWeight: 800, fontSize: 17 }}>
+            {(user.name || user.email || "?").slice(0, 1).toUpperCase()}
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 15.5, fontWeight: 700 }}>{user.name || "Аккаунт"}</div>
+            {user.email && <div style={{ fontSize: 13, color: C.mut, display: "flex", alignItems: "center", gap: 5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}><Mail size={13} /> {user.email}</div>}
+          </div>
+          <Button size="sm" variant="soft" color={C.mut} onClick={logout}><LogOut size={15} /> Выйти</Button>
+        </div>
+      ) : (
+        <div style={{ display: "flex", alignItems: "center", gap: 12, background: C.lavBg, border: `1px solid ${C.line}`, borderRadius: 16, padding: "14px 18px", marginBottom: 18, flexWrap: "wrap" }}>
+          <div style={{ flex: 1, minWidth: 200, fontSize: 14, color: C.sub }}>Войдите, чтобы сохранять прогресс между устройствами и заниматься с ИИ.</div>
+          <Button size="sm" color={C.purple} onClick={() => navigate("/login?next=/progress")}>Войти</Button>
+        </div>
+      )}
+
+      {keys.length === 0 ? (
+        <div style={{ textAlign: "center", padding: "40px 20px", background: "#fff", border: `1px solid ${C.line}`, borderRadius: 18 }}>
+          <div style={{ width: 56, height: 56, borderRadius: 16, background: C.blueBg, display: "grid", placeItems: "center", margin: "0 auto 14px" }}>
+            <ClipboardList size={26} style={{ color: C.blue }} />
+          </div>
+          <h3 style={{ fontSize: 18, fontWeight: 700, margin: "0 0 6px" }}>Вы ещё не проходили диагностику</h3>
+          <p style={{ fontSize: 14.5, color: C.mut, margin: "0 0 18px" }}>Пройдите короткий тест — и здесь появятся ваш прогноз балла и темы для подготовки.</p>
+          <Button onClick={() => navigate("/test")}>Пройти тест</Button>
+        </div>
+      ) : (
+      <>
       <p style={{ fontSize: 14.5, color: C.mut, margin: "0 0 22px" }}>Нажмите на предмет, чтобы открыть подготовку и настроить дату экзамена.</p>
 
       <div style={{ display: "grid", gap: 12 }}>
@@ -113,6 +144,8 @@ export default function Progress() {
         </div>
         <Button color="#fff" style={{ color: C.blue }} onClick={() => navigate("/parent")}>Поделиться</Button>
       </div>
+      </>
+      )}
     </main>
   );
 }
