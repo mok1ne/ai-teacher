@@ -2,8 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Flame, Award, CheckCircle2, Users, ChevronDown, ChevronUp, LogOut, Mail, ClipboardList } from "lucide-react";
 import Button from "../components/ui/Button";
-import Gauge from "../components/ui/Gauge";
-import { Stat } from "../components/Pieces";
+import { Stat, ScoreView } from "../components/Pieces";
 import { ExamBlock } from "../components/ExamReminder";
 import { SUBJECTS } from "../data/subjects";
 import { useApp } from "../context/AppContext";
@@ -12,7 +11,7 @@ import { C } from "../theme";
 
 export default function Progress() {
   const navigate = useNavigate();
-  const { resultsBySubject, lastSubjectKey, studiedFor, boostedScoreFor, setTutorTarget } = useApp();
+  const { resultsBySubject, lastSubjectKey, studiedFor, scoreFor, setTutorTarget } = useApp();
   const { user, logout } = useAuth();
   const keys = Object.keys(resultsBySubject).filter((k) => SUBJECTS[k]);
   const [open, setOpen] = useState(lastSubjectKey && resultsBySubject[lastSubjectKey] ? lastSubjectKey : (keys[0] || null));
@@ -63,10 +62,11 @@ export default function Progress() {
         {keys.map((subjectKey) => {
           const r = resultsBySubject[subjectKey];
           const s = SUBJECTS[subjectKey];
-          const score = boostedScoreFor(subjectKey);
+          const sc = scoreFor(subjectKey);
           const studied = studiedFor(subjectKey);
-          const delta = score - r.predicted;
           const expanded = open === subjectKey;
+          const headNum = sc.kind === "oge" ? sc.mark : sc.score;
+          const headLabel = sc.kind === "oge" ? "оценка" : "балл ЕГЭ";
 
           return (
             <div key={subjectKey} style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 18, overflow: "hidden", boxShadow: expanded ? "0 12px 32px -22px #0f172a66" : "none" }}>
@@ -81,8 +81,8 @@ export default function Progress() {
                   <div style={{ fontSize: 12.5, color: C.soft }}>{studied.length} из {r.weak.length} тем разобрано · {s.level}</div>
                 </div>
                 <div style={{ textAlign: "right", flexShrink: 0 }}>
-                  <div style={{ fontSize: 24, fontWeight: 800, color: s.accent, lineHeight: 1 }}>{score}</div>
-                  <div style={{ fontSize: 11, color: C.soft }}>баллов{delta > 0 ? ` (+${delta})` : ""}</div>
+                  <div style={{ fontSize: 24, fontWeight: 800, color: s.accent, lineHeight: 1 }}>{headNum}</div>
+                  <div style={{ fontSize: 11, color: C.soft }}>{headLabel}</div>
                 </div>
                 {expanded ? <ChevronUp size={20} style={{ color: C.soft, flexShrink: 0 }} /> : <ChevronDown size={20} style={{ color: C.soft, flexShrink: 0 }} />}
               </button>
@@ -96,8 +96,8 @@ export default function Progress() {
 
                   <div className="cards-2" style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: 20, alignItems: "start" }}>
                     <div style={{ textAlign: "center" }}>
-                      <Gauge value={score} />
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 12 }}>
+                      <ScoreView sc={sc} />
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 14 }}>
                         <Stat Icon={Award} c={C.green} bg={C.mintBg} value={`${studied.length}/${r.weak.length}`} label="тем разобрано" />
                         <Stat Icon={Flame} c={C.amber} bg={C.creamBg} value={`${r.correct}/${r.total}`} label="верно в тесте" />
                       </div>

@@ -11,7 +11,7 @@ import { C } from "../theme";
 export default function Parent() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const { results, boostedScoreFor, studiedFor } = useApp();
+  const { results, scoreFor, studiedFor } = useApp();
   const { user } = useAuth();
   const [picked, setPicked] = useState(null);
   const [done, setDone] = useState(params.get("paid") === "1");
@@ -52,7 +52,9 @@ export default function Parent() {
 
   if (!results) return <Navigate to="/test" replace />;
   const subject = SUBJECTS[results.subjectKey];
-  const score = boostedScoreFor(results.subjectKey);
+  const sc = scoreFor(results.subjectKey);
+  const scoreLabel = sc.kind === "oge" ? `оценка ${sc.mark}` : sc.score;
+  const scoreCaption = sc.kind === "oge" ? "ожидаемая оценка" : "тестовый балл";
   const studiedCount = studiedFor(results.subjectKey).length;
 
   const tariffs = [
@@ -71,7 +73,7 @@ export default function Parent() {
       <div style={{ background: "linear-gradient(120deg,#EFF4FF,#F4EEFE)", border: `1px solid ${C.line}`, borderRadius: 20, padding: "22px 24px", marginBottom: 26 }}>
         <div style={{ fontSize: 12.5, fontWeight: 700, color: C.soft, textTransform: "uppercase" }}>Отчёт о прогрессе для родителя</div>
         <div style={{ display: "flex", gap: 26, alignItems: "center", flexWrap: "wrap", marginTop: 10 }}>
-          <div><div style={{ fontSize: 38, fontWeight: 800, color: C.blue }}>{score}</div><div style={{ fontSize: 13, color: C.mut }}>прогноз балла</div></div>
+          <div><div style={{ fontSize: 38, fontWeight: 800, color: C.blue }}>{scoreLabel}</div><div style={{ fontSize: 13, color: C.mut }}>{scoreCaption}</div></div>
           <div><div style={{ fontSize: 38, fontWeight: 800, color: C.green }}>{studiedCount}</div><div style={{ fontSize: 13, color: C.mut }}>тем разобрано</div></div>
           <div style={{ flex: 1, minWidth: 200, fontSize: 14.5, color: C.sub, lineHeight: 1.5 }}>
             Ребёнок уже занимается по предмету «{subject.name}» и видит реальный прогресс. Подписка открывает все предметы и проверку сочинений.

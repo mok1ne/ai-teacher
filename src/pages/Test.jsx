@@ -51,9 +51,8 @@ export default function Test() {
       correct += s.c;
       if (s.c < s.t) weak.push(topic); else strong.push(topic);
     });
-    // минимум 30 баллов даже при 0 верных, максимум 100 при всех верных
-    const predicted = Math.round((correct / total) * 100);
-    setResults({ subjectKey, predicted, correct, total, weak, strong });
+    // оценка считается по шкале уровня (см. lib/scoring.js)
+    setResults({ subjectKey, levelKey: subject.levelKey, correct, total, weak, strong });
     navigate("/results");
   }
 

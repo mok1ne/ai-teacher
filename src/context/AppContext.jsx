@@ -1,6 +1,7 @@
 import { createContext, useContext, useState } from "react";
 import { SUBJECTS } from "../data/subjects";
 import { store, todayKey } from "../lib/storage";
+import { estimateScore } from "../lib/scoring";
 
 const AppContext = createContext(null);
 
@@ -28,15 +29,19 @@ export function AppProvider({ children }) {
       persist("vs_studied", n); return n;
     });
   };
-  const boostedScoreFor = (subjectKey) => {
+  // оценка по реальной шкале уровня (ЕГЭ — балл, ОГЭ — оценка), с учётом разобранных тем
+  const scoreFor = (subjectKey) => {
     const r = resultsBySubject[subjectKey];
-    return r ? Math.min(100, r.predicted + studiedFor(subjectKey).length * 2) : 0;
+    if (!r) return null;
+    return estimateScore(subjectKey, r.levelKey, r.correct, r.total, studiedFor(subjectKey).length);
   };
   const studentSummaryFor = (subjectKey) => {
     const r = resultsBySubject[subjectKey];
     if (!r) return null;
     const s = SUBJECTS[subjectKey];
-    return `Диагностика по предмету «${s?.name}»: прогноз ~${boostedScoreFor(subjectKey)} баллов из 100. ` +
+    const sc = scoreFor(subjectKey);
+    const res = sc.kind === "oge" ? `ожидаемая оценка ${sc.mark} из 5 (~${sc.percent}% верно)` : `прогноз ~${sc.score} тестовых баллов из 100`;
+    return `Диагностика по предмету «${s?.name}» (${s?.level}): ${res}. ` +
       `Сильные темы: ${r.strong.length ? r.strong.join(", ") : "—"}. ` +
       `Темы для улучшения: ${r.weak.length ? r.weak.join(", ") : "—"}.`;
   };
@@ -68,7 +73,7 @@ export function AppProvider({ children }) {
 
   const value = {
     resultsBySubject, results, lastSubjectKey, setResults,
-    studiedFor, markStudied, boostedScoreFor, studentSummaryFor,
+    studiedFor, markStudied, scoreFor, studentSummaryFor,
     tutorTarget, setTutorTarget,
     examDates, examDateFor, setExamDate, notifyEnabled, setNotifyEnabled,
     usedToday, useOneMessage,

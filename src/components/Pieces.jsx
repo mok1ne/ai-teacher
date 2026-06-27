@@ -1,4 +1,5 @@
 import { C } from "../theme";
+import Gauge from "./ui/Gauge";
 
 export function Pill({ Icon, title, color, bg }) {
   return (
@@ -47,6 +48,27 @@ export function LevelTabs({ value, onChange }) {
           </button>
         );
       })}
+    </div>
+  );
+}
+
+export function ScoreView({ sc }) {
+  if (!sc) return null;
+  if (sc.kind === "oge") {
+    const color = sc.mark >= 4 ? C.greenDk : sc.mark === 3 ? C.amberDk : "#DC2626";
+    return (
+      <div style={{ textAlign: "center" }}>
+        <div style={{ fontSize: 68, fontWeight: 800, color, lineHeight: 1 }}>{sc.mark}</div>
+        <div style={{ fontSize: 14, fontWeight: 600, color: C.mut, marginTop: 2 }}>ожидаемая оценка ОГЭ</div>
+        <div style={{ fontSize: 12.5, color: C.soft, marginTop: 6 }}>≈ {sc.percent}% верно · {sc.primary} из {sc.max} первичных баллов</div>
+        {!sc.passed && <div style={{ fontSize: 12.5, color: "#DC2626", marginTop: 4 }}>Пока ниже порога — давай подтянем темы.</div>}
+      </div>
+    );
+  }
+  return (
+    <div style={{ textAlign: "center" }}>
+      <Gauge value={sc.score} />
+      <div style={{ fontSize: 12.5, color: C.soft }}>тестовый балл ЕГЭ · ≈ {sc.primary} из {sc.max} первичных</div>
     </div>
   );
 }

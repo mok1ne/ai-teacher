@@ -1,7 +1,7 @@
 import { useNavigate, Navigate } from "react-router-dom";
 import { Target, CheckCircle2, Brain, ArrowRight, Sparkles, RefreshCw } from "lucide-react";
 import Button from "../components/ui/Button";
-import Gauge from "../components/ui/Gauge";
+import { ScoreView } from "../components/Pieces";
 import { SUBJECTS } from "../data/subjects";
 import { ExamBlock } from "../components/ExamReminder";
 import { useApp } from "../context/AppContext";
@@ -9,11 +9,12 @@ import { C } from "../theme";
 
 export default function Results() {
   const navigate = useNavigate();
-  const { results, setTutorTarget } = useApp();
+  const { results, setTutorTarget, scoreFor } = useApp();
   if (!results) return <Navigate to="/test" replace />;
 
   const subject = SUBJECTS[results.subjectKey];
-  const { predicted, correct, total, weak, strong } = results;
+  const { correct, total, weak, strong } = results;
+  const sc = scoreFor(results.subjectKey);
 
   const openTutor = (topic) => { setTutorTarget({ topic, exam: subject.level, subjectKey: results.subjectKey }); navigate("/chat"); };
 
@@ -23,10 +24,10 @@ export default function Results() {
       <div className="res-2col" style={{ display: "grid", gridTemplateColumns: "360px 1fr", gap: 24, alignItems: "start" }}>
         {/* score card */}
         <div style={{ textAlign: "center", background: "#fff", border: `1px solid ${C.line}`, borderRadius: 22, padding: "28px 22px", boxShadow: "0 14px 40px -28px #0f172a66" }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: C.soft, textTransform: "uppercase", letterSpacing: ".05em" }}>Ваш прогноз балла · {subject.name} · {subject.level}</div>
-          <div style={{ display: "flex", justifyContent: "center", margin: "6px 0" }}><Gauge value={predicted} /></div>
-          <p style={{ fontSize: 14.5, color: C.mut, margin: "0 0 18px" }}>
-            Верных ответов: <b style={{ color: C.ink }}>{correct} из {total}</b>. Это ориентировочный стартовый балл — с разбором тем он будет расти.
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.soft, textTransform: "uppercase", letterSpacing: ".05em", marginBottom: 14 }}>Прогноз · {subject.name} · {subject.level}</div>
+          <ScoreView sc={sc} />
+          <p style={{ fontSize: 14.5, color: C.mut, margin: "14px 0 18px" }}>
+            Верных ответов: <b style={{ color: C.ink }}>{correct} из {total}</b>. Ориентировочный результат по шкале {subject.level} — с разбором тем он будет расти.
           </p>
           <div style={{ display: "grid", gap: 10 }}>
             {weak.length > 0 && <Button color={C.purple} onClick={() => openTutor(weak[0])} style={{ justifyContent: "center" }}><Sparkles size={17} /> Разобрать первую тему</Button>}
