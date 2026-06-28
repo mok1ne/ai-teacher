@@ -1,55 +1,44 @@
 /*
- * Перевод результата диагностики в баллы по реальным шкалам ФИПИ 2026.
- * Источник: решения комиссии Рособрнадзора 2026 + демоверсии ФИПИ.
- * Шкалы меняются ежегодно весной — обновлять здесь.
- *
- * Логика: из доли верных ответов оцениваем «первичный балл» на шкале предмета,
- * затем переводим: ЕГЭ → тестовый балл (0–100), ОГЭ → оценку (2–5).
- * Разобранные темы добавляют бонус к первичному баллу.
+ * Перевод результата теста в баллы.
+ * ПРИНЦИП: первичный балл = число верных ответов (1 задание = 1 первичный балл).
+ * Затем первичный переводится по официальным шкалам Рособрнадзора 2026:
+ *   ЕГЭ → тестовый балл (0–100) по таблице перевода;
+ *   ОГЭ → оценка (2–5) по границам первичных баллов.
+ * Поэтому число заданий в банке = максимуму первичных баллов предмета
+ * (мат-ЕГЭ 32, рус-ЕГЭ 50, мат-ОГЭ 31, рус-ОГЭ 37) — чтобы был достижим весь диапазон.
+ * Разобранные темы добавляют первичные баллы (бонус за подготовку).
  */
 
-// ЕГЭ: опорные точки таблицы перевода (первичный → тестовый), между ними интерполяция.
+// ЕГЭ: index = первичный балл, значение = тестовый балл (таблицы 2026).
 const EGE = {
-  "math-ege": { max: 32, anchors: [[0,0],[1,6],[5,27],[6,34],[7,40],[9,52],[11,64],[12,70],[16,78],[17,80],[20,86],[25,96],[29,100],[32,100]] },
-  "russian-ege": { max: 50, anchors: [[0,0],[1,3],[5,12],[10,24],[15,36],[18,40],[28,55],[38,70],[44,82],[48,94],[50,100]] },
+  "math-ege": { max: 32, table: [0,6,11,17,22,27,34,40,46,52,58,64,70,72,74,76,78,80,82,84,86,88,90,92,94,95,96,97,98,99,100,100,100] },
+  "russian-ege": { max: 50, table: [0,3,5,8,10,12,15,17,20,22,24,27,29,32,34,36,37,39,40,42,43,45,46,48,49,51,52,54,55,57,58,60,61,63,64,66,67,69,70,72,73,75,78,81,83,86,89,91,94,97,100] },
 };
 
-// ОГЭ: границы оценок по первичному баллу (primary >= порог → оценка).
+// ОГЭ: границы оценок по первичному баллу (первичный >= порог → оценка).
 const OGE = {
-  "math-oge": { max: 31, bands: [[22,5],[15,4],[8,3],[0,2]], pass: 8 },
-  "russian-oge": { max: 37, bands: [[33,5],[26,4],[15,3],[0,2]], pass: 15 },
+  "math-oge": { max: 31, bands: [[22,5],[15,4],[8,3]] },     // «5»22-31 «4»15-21 «3»8-14
+  "russian-oge": { max: 37, bands: [[33,5],[26,4],[15,3]] },  // «5»33-37 «4»26-32 «3»15-25
 };
 
-function interp(primary, anchors) {
-  if (primary <= anchors[0][0]) return anchors[0][1];
-  for (let i = 1; i < anchors.length; i++) {
-    const [p0, t0] = anchors[i - 1], [p1, t1] = anchors[i];
-    if (primary <= p1) return Math.round(t0 + ((primary - p0) / (p1 - p0)) * (t1 - t0));
-  }
-  return anchors[anchors.length - 1][1];
-}
-function markFrom(primary, bands) {
-  for (const [th, m] of bands) if (primary >= th) return m;
-  return 2;
+export function levelOf(subjectKey, fallback) {
+  return fallback || (subjectKey && subjectKey.includes("-oge") ? "oge" : "ege");
 }
 
-export function levelOf(subjectKey, fallbackLevel) {
-  if (fallbackLevel) return fallbackLevel;
-  return subjectKey && subjectKey.includes("-oge") ? "oge" : "ege";
-}
-
-/* correct/total + число разобранных тем → результат по шкале уровня. */
 export function estimateScore(subjectKey, levelKey, correct, total, studied = 0) {
-  const ratio = total ? correct / total : 0;
   const level = levelOf(subjectKey, levelKey);
+  const percent = total ? Math.round((correct / total) * 100) : 0;
+
   if (level === "oge") {
     const cfg = OGE[subjectKey] || OGE["math-oge"];
-    const primary = Math.min(cfg.max, Math.round(ratio * cfg.max) + studied);
-    return { kind: "oge", mark: markFrom(primary, cfg.bands), primary, max: cfg.max,
-      percent: Math.round(ratio * 100), passed: primary >= cfg.pass };
+    const primary = Math.max(0, Math.min(cfg.max, correct + studied));
+    let mark = 2;
+    for (const [th, m] of cfg.bands) { if (primary >= th) { mark = m; break; } }
+    return { kind: "oge", mark, primary, max: cfg.max, percent, correct, total, passed: mark >= 3 };
   }
+
   const cfg = EGE[subjectKey] || EGE["math-ege"];
-  const primary = Math.min(cfg.max, Math.round(ratio * cfg.max) + studied);
-  return { kind: "ege", score: interp(primary, cfg.anchors), primary, max: cfg.max,
-    percent: Math.round(ratio * 100) };
+  const primary = Math.max(0, Math.min(cfg.max, correct + studied));
+  const score = cfg.table[primary] ?? 0;
+  return { kind: "ege", score, primary, max: cfg.max, percent, correct, total };
 }
