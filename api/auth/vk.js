@@ -1,4 +1,15 @@
 import { signToken } from "../_lib/auth.js";
+import { getUserById, saveUser, publicUser } from "../_lib/users.js";
+
+async function upsert(base) {
+  const existing = await getUserById(base.id);
+  const user = {
+    plan: "free", twofa: false, createdAt: Date.now(),
+    ...existing, ...base, provider: "vk",
+  };
+  await saveUser(user);
+  return user;
+}
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "method_not_allowed" });
@@ -6,7 +17,8 @@ export default async function handler(req, res) {
   if (!code) return res.status(400).json({ error: "missing_code" });
 
   try {
-    // Реальный обмен кода на токен — работает, если заданы VK_APP_ID и VK_SECURE_KEY.
+    // Реальный обмен кода (если заданы VK_APP_ID и VK_SECURE_KEY). VK ID —
+    // разрешённый российский сервис авторизации.
     if (process.env.VK_APP_ID && process.env.VK_SECURE_KEY) {
       const tr = await fetch(
         `https://oauth.vk.com/access_token?client_id=${process.env.VK_APP_ID}` +
@@ -23,14 +35,16 @@ export default async function handler(req, res) {
         if (p) name = `${p.first_name} ${p.last_name}`;
       } catch { /* ignore */ }
 
-      const user = { id: "vk:" + t.user_id, email: t.email || null, name, plan: "free" };
-      return res.status(200).json({ token: signToken({ ...user, iat: Date.now() }), user });
+      const user = await upsert({ id: "vk:" + t.user_id, email: t.email || null, name });
+      const token = signToken({ id: user.id, email: user.email, iat: Date.now() });
+      return res.status(200).json({ token, user: publicUser(user) });
     }
 
-    // DEMO без VK-приложения: выдаём гостевую сессию, чтобы протестировать поток.
-    const user = { id: "vk:demo", email: null, name: "Гость VK", plan: "free" };
-    return res.status(200).json({ token: signToken({ ...user, iat: Date.now() }), user, demo: true });
-  } catch (e) {
+    // DEMO без VK-приложения — гостевая сессия для проверки потока.
+    const user = await upsert({ id: "vk:demo", email: null, name: "Гость VK" });
+    const token = signToken({ id: user.id, email: user.email, iat: Date.now() });
+    return res.status(200).json({ token, user: publicUser(user), demo: true });
+  } catch {
     return res.status(500).json({ error: "vk_error" });
   }
 }

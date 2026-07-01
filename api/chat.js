@@ -9,16 +9,21 @@
 import { verifyToken, getBearer } from "./_lib/auth.js";
 import { checkAndIncrement } from "./_lib/limiter.js";
 import { PLAN_LIMITS } from "./_lib/plans.js";
+import { getUserById } from "./_lib/users.js";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "method_not_allowed" });
   if (!process.env.ANTHROPIC_API_KEY) return res.status(500).json({ error: "missing_api_key" });
 
-  const user = verifyToken(getBearer(req));
-  const plan = user?.plan || "anon";
+  const token = verifyToken(getBearer(req));
+  let plan = "anon";
+  if (token?.email) {
+    const account = await getUserById(token.id);
+    plan = account?.plan || "free";
+  }
   const limit = PLAN_LIMITS[plan] ?? PLAN_LIMITS.anon;
   const ip = (req.headers["x-forwarded-for"] || "").split(",")[0].trim() || "unknown";
-  const key = user ? `user:${user.id}` : `ip:${ip}`;
+  const key = token ? `user:${token.id}` : `ip:${ip}`;
 
   const gate = checkAndIncrement(key, limit);
   if (!gate.allowed) {

@@ -33,21 +33,23 @@ export default function Settings() {
   if (loading) return null;
   if (!user) return <Navigate to="/login?next=/settings" replace />;
 
-  const saveName = () => {
-    try { updateName(name); setNameMsg("Имя обновлено"); setTimeout(() => setNameMsg(""), 2500); }
+  const saveName = async () => {
+    try { await updateName(name); setNameMsg("Имя обновлено"); setTimeout(() => setNameMsg(""), 2500); }
     catch { setNameMsg(""); }
   };
-  const savePw = () => {
+  const savePw = async () => {
     setPwErr(""); setPwMsg("");
     try {
-      changePassword(oldPw, newPw);
+      await changePassword(oldPw, newPw);
       setPwMsg("Пароль изменён"); setOldPw(""); setNewPw(""); setTimeout(() => setPwMsg(""), 2500);
     } catch (e) {
       setPwErr(e.message === "bad_password" ? "Текущий пароль неверный" :
         e.message === "weak_password" ? "Новый пароль минимум 6 символов" :
+        e.message === "network" ? "Сервер недоступен" :
         "Смена пароля доступна только для входа по почте");
     }
   };
+  const toggle2fa = async () => { try { await setTwoFactor(!user.twofa); } catch { /* ignore */ } };
 
   return (
     <main className="page" style={{ maxWidth: 620, margin: "0 auto", padding: "30px 20px 60px" }}>
@@ -83,7 +85,7 @@ export default function Settings() {
       <Card icon={ShieldCheck} title="Двухэтапная аутентификация (2FA)" desc="Дополнительный код при входе — надёжнее защищает аккаунт.">
         <label style={{ display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}>
           <span
-            onClick={() => setTwoFactor(!user.twofa)}
+            onClick={toggle2fa}
             style={{ width: 46, height: 26, borderRadius: 20, background: user.twofa ? C.green : C.line, position: "relative", transition: "background .2s", flexShrink: 0 }}>
             <span style={{ position: "absolute", top: 3, left: user.twofa ? 23 : 3, width: 20, height: 20, borderRadius: "50%", background: "#fff", transition: "left .2s", boxShadow: "0 1px 3px #0003" }} />
           </span>

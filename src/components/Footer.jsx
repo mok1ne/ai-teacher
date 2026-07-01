@@ -32,7 +32,7 @@ export default function Footer() {
 
           <div style={{ display: "flex", gap: 48, flexWrap: "wrap" }}>
             <Col title="Навигация" items={[["Главная", "/"], ["Пройти тест", "/test"], ["Чат с ИИ", "/chat"], ["Мой прогресс", "/progress"]]} />
-            <Col title="Документы" items={[["Публичная оферта", "/legal/offer"], ["Политика конфиденциальности", "/legal/privacy"], ["Согласие на обработку ПДн", "/legal/consent"]]} />
+            <Col title="Документы" items={[["Публичная оферта", "/legal/offer"], ["Политика конфиденциальности", "/legal/privacy"], ["Согласие на обработку ПДн", "/legal/consent"], ["Рекомендательные технологии", "/legal/recommendations"]]} />
             <Col title="Контакты" items={[["Войти", "/login"], ["Тарифы", "/parent"]]} />
           </div>
         </div>

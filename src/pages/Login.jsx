@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, Navigate } from "react-router-dom";
 import { Mail, ArrowRight, ShieldCheck, Lock, User, Calendar } from "lucide-react";
 import Button from "../components/ui/Button";
 import Logo from "../components/Logo";
@@ -7,12 +7,13 @@ import { useAuth } from "../context/AuthContext";
 import { C } from "../theme";
 
 const MSG = {
-  gmail_blocked: "Вход по адресам @gmail.com сейчас недоступен для пользователей из РФ. Используйте другую почту (Яндекс, Mail.ru) или войдите через VK.",
   invalid_email: "Введите корректную почту.",
   weak_password: "Пароль должен быть не короче 6 символов.",
+  empty_name: "Введите имя.",
+  invalid_age: "Введите корректный возраст.",
   exists: "Такая почта уже зарегистрирована — войдите.",
-  no_account: "Аккаунт с такой почтой не найден — зарегистрируйтесь.",
-  bad_password: "Неверный пароль.",
+  bad_credentials: "Неверная почта или пароль.",
+  network: "Сервер недоступен. Проверьте подключение и попробуйте снова.",
 };
 
 function Field({ icon: Icon, ...props }) {
@@ -28,16 +29,19 @@ export default function Login() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const next = params.get("next") || "/";
-  const { loginEmail, registerEmail, loginVK } = useAuth();
+  const { user, loading, loginEmail, registerEmail, loginVK } = useAuth();
 
-  const [mode, setMode] = useState("login");   // login | register
-  const [step, setStep] = useState(1);          // для регистрации: 1 почта+пароль, 2 имя+возраст
+  const [mode, setMode] = useState("login");
+  const [step, setStep] = useState(1);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
+
+  // Уже вошли — не даём авторизоваться повторно, возвращаем назад.
+  if (!loading && user) return <Navigate to={next} replace />;
 
   const fail = (e) => setErr(MSG[e?.message] || "Не удалось. Проверьте данные и попробуйте снова.");
 
@@ -50,19 +54,19 @@ export default function Login() {
   const nextStep = () => {
     setErr("");
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return setErr(MSG.invalid_email);
-    if (/@(gmail|googlemail)\.com$/i.test(email.trim())) return setErr(MSG.gmail_blocked);
     if (password.length < 6) return setErr(MSG.weak_password);
     setStep(2);
   };
 
   const doRegister = async () => {
     setErr("");
-    if (!name.trim()) return setErr("Введите имя.");
+    if (!name.trim()) return setErr(MSG.empty_name);
     const a = parseInt(age, 10);
-    if (!a || a < 7 || a > 100) return setErr("Введите корректный возраст.");
+    if (!a || a < 7 || a > 100) return setErr(MSG.invalid_age);
     setBusy(true);
     try { await registerEmail(email.trim(), password, name.trim(), a); navigate(next); }
-    catch (e) { fail(e); setStep(1); } finally { setBusy(false); }
+    catch (e) { fail(e); if (e.message === "exists") setMode("login"); setStep(1); }
+    finally { setBusy(false); }
   };
 
   const switchMode = (m) => { setMode(m); setStep(1); setErr(""); setPassword(""); };
@@ -75,7 +79,6 @@ export default function Login() {
         <p style={{ fontSize: 14.5, color: C.mut, margin: 0 }}>Сохраняйте прогресс, занимайтесь с ИИ и оформляйте подписку.</p>
       </div>
 
-      {/* переключатель вход / регистрация */}
       <div style={{ display: "flex", background: "#EEF2F8", borderRadius: 12, padding: 4, gap: 4, marginBottom: 18 }}>
         {[["login", "Вход"], ["register", "Регистрация"]].map(([m, label]) => (
           <button key={m} onClick={() => switchMode(m)}
@@ -100,10 +103,8 @@ export default function Login() {
 
         {mode === "login" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <Field icon={Mail} type="email" value={email} placeholder="you@example.com" autoComplete="email"
-              onChange={(e) => setEmail(e.target.value)} />
-            <Field icon={Lock} type="password" value={password} placeholder="Пароль" autoComplete="current-password"
-              onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && doLogin()} />
+            <Field icon={Mail} type="email" value={email} placeholder="you@example.com" autoComplete="email" onChange={(e) => setEmail(e.target.value)} />
+            <Field icon={Lock} type="password" value={password} placeholder="Пароль" autoComplete="current-password" onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && doLogin()} />
             <Button onClick={doLogin} disabled={busy} style={{ width: "100%", justifyContent: "center", padding: "13px" }}>
               {busy ? "Входим…" : "Войти"}
             </Button>
@@ -112,10 +113,8 @@ export default function Login() {
 
         {mode === "register" && step === 1 && (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <Field icon={Mail} type="email" value={email} placeholder="you@example.com" autoComplete="email"
-              onChange={(e) => setEmail(e.target.value)} />
-            <Field icon={Lock} type="password" value={password} placeholder="Придумайте пароль (от 6 символов)" autoComplete="new-password"
-              onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && nextStep()} />
+            <Field icon={Mail} type="email" value={email} placeholder="you@example.com" autoComplete="email" onChange={(e) => setEmail(e.target.value)} />
+            <Field icon={Lock} type="password" value={password} placeholder="Придумайте пароль (от 6 символов)" autoComplete="new-password" onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && nextStep()} />
             <Button onClick={nextStep} style={{ width: "100%", justifyContent: "center", padding: "13px" }}>
               Далее <ArrowRight size={16} />
             </Button>
@@ -125,10 +124,8 @@ export default function Login() {
         {mode === "register" && step === 2 && (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <div style={{ fontSize: 13.5, color: C.mut, marginBottom: 2 }}>Последний шаг — расскажите о себе:</div>
-            <Field icon={User} type="text" value={name} placeholder="Имя" autoComplete="given-name"
-              onChange={(e) => setName(e.target.value)} />
-            <Field icon={Calendar} type="number" value={age} placeholder="Возраст" min="7" max="100"
-              onChange={(e) => setAge(e.target.value)} onKeyDown={(e) => e.key === "Enter" && doRegister()} />
+            <Field icon={User} type="text" value={name} placeholder="Имя" autoComplete="given-name" onChange={(e) => setName(e.target.value)} />
+            <Field icon={Calendar} type="number" value={age} placeholder="Возраст" min="7" max="100" onChange={(e) => setAge(e.target.value)} onKeyDown={(e) => e.key === "Enter" && doRegister()} />
             <Button onClick={doRegister} disabled={busy} style={{ width: "100%", justifyContent: "center", padding: "13px" }}>
               {busy ? "Создаём…" : "Создать аккаунт"}
             </Button>
@@ -140,7 +137,9 @@ export default function Login() {
       </div>
 
       <p style={{ fontSize: 12, color: C.soft, marginTop: 16, textAlign: "center", lineHeight: 1.5, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-        <ShieldCheck size={14} /> Продолжая, вы соглашаетесь на обработку данных (152-ФЗ).
+        <ShieldCheck size={14} /> Продолжая, вы соглашаетесь с
+        <a href="/legal/offer" style={{ color: C.purple }}>условиями</a> и
+        <a href="/legal/privacy" style={{ color: C.purple }}>политикой конфиденциальности</a>.
       </p>
     </main>
   );

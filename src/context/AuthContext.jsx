@@ -1,28 +1,26 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { getToken, setToken, authHeaders } from "../lib/auth";
-import { accounts, isBlockedEmail, validEmail } from "../lib/accounts";
 
 const AuthContext = createContext(null);
 const PROFILE_KEY = "vs_profile";
+const validEmail = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(e || "").trim());
 
-function saveProfile(u) {
-  try { if (u) localStorage.setItem(PROFILE_KEY, JSON.stringify(u)); else localStorage.removeItem(PROFILE_KEY); } catch { /* ignore */ }
+function cacheProfile(u) {
+  try { u ? localStorage.setItem(PROFILE_KEY, JSON.stringify(u)) : localStorage.removeItem(PROFILE_KEY); } catch { /* ignore */ }
 }
-function loadProfile() {
+function readCache() {
   try { return JSON.parse(localStorage.getItem(PROFILE_KEY) || "null"); } catch { return null; }
 }
 
-// Токен сессии: через API, а если бэкенд недоступен (превью без vercel dev) —
-// локальный демо-токен, чтобы прототип работал в браузере.
-async function issueToken(email, name) {
-  try {
-    const r = await fetch("/api/auth/email", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, name }),
-    });
-    if (r.ok) { const d = await r.json(); return d.token; }
-  } catch { /* оффлайн */ }
-  return "demo." + btoa(unescape(encodeURIComponent(email))).slice(0, 24);
+async function api(path, { method = "GET", body, auth = false } = {}) {
+  const headers = { "Content-Type": "application/json", ...(auth ? authHeaders() : {}) };
+  let r;
+  try { r = await fetch(path, { method, headers, body: body ? JSON.stringify(body) : undefined }); }
+  catch { throw new Error("network"); }
+  let data = {};
+  try { data = await r.json(); } catch { /* пусто */ }
+  if (!r.ok) throw new Error(data.error || "request_failed");
+  return data;
 }
 
 export function AuthProvider({ children }) {
@@ -32,41 +30,34 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     (async () => {
       if (!getToken()) { setLoading(false); return; }
-      const local = loadProfile();
-      if (local) { setUser(local); setLoading(false); return; }
+      const cached = readCache();
+      if (cached) setUser(cached);
       try {
-        const r = await fetch("/api/auth/me", { headers: authHeaders() });
-        if (r.ok) { const d = await r.json(); setUser(d.user); saveProfile(d.user); }
-        else setToken(null);
-      } catch { /* backend offline */ }
-      finally { setLoading(false); }
+        const d = await api("/api/auth/me", { auth: true });
+        setUser(d.user); cacheProfile(d.user);
+      } catch (e) {
+        if (e.message === "unauthorized") { setToken(null); cacheProfile(null); setUser(null); }
+        // network — оставляем кэш
+      } finally { setLoading(false); }
     })();
   }, []);
 
-  function commit(u) { setToken(u._token); const c = { ...u }; delete c._token; setUser(c); saveProfile(c); return c; }
+  function apply(d) { setToken(d.token); setUser(d.user); cacheProfile(d.user); return d.user; }
 
   // Регистрация: e-mail + пароль, затем имя и возраст.
   async function registerEmail(email, password, name, age) {
     if (!validEmail(email)) throw new Error("invalid_email");
-    if (isBlockedEmail(email)) throw new Error("gmail_blocked");
     if ((password || "").length < 6) throw new Error("weak_password");
-    if (accounts.exists(email)) throw new Error("exists");
-    accounts.create(email, password, name, age);
-    const _token = await issueToken(email, name);
-    return commit({ id: "email:" + email.toLowerCase(), email, name, age, plan: "free", twofa: false, _token });
+    return apply(await api("/api/auth/register", { method: "POST", body: { email: email.trim(), password, name, age } }));
   }
 
   // Вход по почте — только с паролем.
   async function loginEmail(email, password) {
     if (!validEmail(email)) throw new Error("invalid_email");
-    if (isBlockedEmail(email)) throw new Error("gmail_blocked");
-    if (!accounts.exists(email)) throw new Error("no_account");
-    if (!accounts.verify(email, password)) throw new Error("bad_password");
-    const acc = accounts.get(email);
-    const _token = await issueToken(email, acc.name);
-    return commit({ id: "email:" + email.toLowerCase(), email, name: acc.name, age: acc.age, plan: "free", twofa: acc.twofa, _token });
+    return apply(await api("/api/auth/login", { method: "POST", body: { email: email.trim(), password } }));
   }
 
+  // VK ID — разрешённый российский сервис авторизации.
   function loginVK() {
     const appId = import.meta.env.VITE_VK_APP_ID || "DEMO";
     const redirect = window.location.origin + "/auth/vk/callback";
@@ -74,41 +65,34 @@ export function AuthProvider({ children }) {
       `https://oauth.vk.com/authorize?client_id=${appId}` +
       `&redirect_uri=${encodeURIComponent(redirect)}&response_type=code&scope=email&v=5.131`;
   }
-
   async function completeVK(code) {
-    const r = await fetch("/api/auth/vk", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code, redirectUri: window.location.origin + "/auth/vk/callback" }),
-    });
-    if (!r.ok) throw new Error("auth_failed");
-    const d = await r.json(); setToken(d.token); setUser(d.user); saveProfile(d.user); return d.user;
+    const d = await api("/api/auth/vk", { method: "POST", body: { code, redirectUri: window.location.origin + "/auth/vk/callback" } });
+    return apply(d);
   }
 
-  // --- Настройки профиля ---
-  function updateName(name) {
+  // --- Настройки ---
+  async function updateName(name) {
     if (!name || !name.trim()) throw new Error("empty_name");
-    if (user?.email) accounts.update(user.email, { name: name.trim() });
-    const u = { ...user, name: name.trim() }; setUser(u); saveProfile(u);
+    const d = await api("/api/account/name", { method: "POST", auth: true, body: { name: name.trim() } });
+    setUser(d.user); cacheProfile(d.user);
   }
-  function changePassword(oldPw, newPw) {
-    if (!user?.email) throw new Error("no_email_account");
-    if (!accounts.verify(user.email, oldPw)) throw new Error("bad_password");
-    if ((newPw || "").length < 6) throw new Error("weak_password");
-    accounts.setPassword(user.email, newPw);
+  async function changePassword(oldPassword, newPassword) {
+    if ((newPassword || "").length < 6) throw new Error("weak_password");
+    await api("/api/account/password", { method: "POST", auth: true, body: { oldPassword, newPassword } });
   }
-  function setTwoFactor(enabled) {
-    if (user?.email) accounts.update(user.email, { twofa: !!enabled });
-    const u = { ...user, twofa: !!enabled }; setUser(u); saveProfile(u);
+  async function setTwoFactor(enabled) {
+    const d = await api("/api/account/twofa", { method: "POST", auth: true, body: { enabled } });
+    setUser(d.user); cacheProfile(d.user);
   }
 
-  function logout() { setToken(null); saveProfile(null); setUser(null); }
+  function logout() { setToken(null); cacheProfile(null); setUser(null); }
 
   return (
     <AuthContext.Provider value={{
       user, loading,
       registerEmail, loginEmail, loginVK, completeVK, logout,
       updateName, changePassword, setTwoFactor,
-      isEmailUser: !!user?.email,
+      isEmailUser: user?.provider === "email",
     }}>
       {children}
     </AuthContext.Provider>

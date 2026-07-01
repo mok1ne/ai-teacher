@@ -1,7 +1,10 @@
 import { verifyToken, getBearer } from "../_lib/auth.js";
+import { getUserById, getUserByEmail, publicUser } from "../_lib/users.js";
 
 export default async function handler(req, res) {
-  const u = verifyToken(getBearer(req));
-  if (!u) return res.status(401).json({ error: "unauthorized" });
-  return res.status(200).json({ user: { id: u.id, email: u.email, name: u.name, plan: u.plan } });
+  const t = verifyToken(getBearer(req));
+  if (!t?.id) return res.status(401).json({ error: "unauthorized" });
+  const user = (await getUserById(t.id)) || (await getUserByEmail(t.email));
+  if (!user) return res.status(401).json({ error: "unauthorized" });
+  return res.status(200).json({ user: publicUser(user) });
 }
