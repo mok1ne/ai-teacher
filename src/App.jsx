@@ -16,6 +16,7 @@ import Tutor from "./pages/Tutor";
 import Progress from "./pages/Progress";
 import Parent from "./pages/Parent";
 import Login from "./pages/Login";
+import Settings from "./pages/Settings";
 import AuthVKCallback from "./pages/AuthVKCallback";
 import Legal from "./pages/Legal";
 
@@ -64,6 +65,7 @@ function Layout() {
           <Route path="/progress" element={<Progress />} />
           <Route path="/parent" element={<Parent />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="/auth/vk/callback" element={<AuthVKCallback />} />
           <Route path="/legal/:slug" element={<Legal />} />
           <Route path="*" element={<Home />} />

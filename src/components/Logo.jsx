@@ -3,6 +3,6 @@
 export default function Logo({ size = 34, radius = 0 }) {
   return (
     <img src="/logo.webp" width={size} height={size} alt="Время сдавать"
-      style={{ display: "block", borderRadius: radius, objectFit: "contain", objectFit: "cover", height: "100%" }} />
+      style={{ display: "block", borderRadius: radius, objectFit: "contain" }} />
   );
 }

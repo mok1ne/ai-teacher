@@ -41,18 +41,22 @@ export default function Test() {
 
   function finish(allAnswers) {
     const stats = {};
+    let primary = 0;
     questions.forEach((qq, idx) => {
       if (!stats[qq.topic]) stats[qq.topic] = { c: 0, t: 0 };
       stats[qq.topic].t++;
-      if (allAnswers[idx] === qq.correct) stats[qq.topic].c++;
+      if (allAnswers[idx] === qq.correct) {
+        stats[qq.topic].c++;
+        primary += qq.points || 1; // сложные задания дают больше первичных баллов
+      }
     });
     let correct = 0; const weak = []; const strong = [];
     Object.entries(stats).forEach(([topic, s]) => {
       correct += s.c;
       if (s.c < s.t) weak.push(topic); else strong.push(topic);
     });
-    // оценка считается по шкале уровня (см. lib/scoring.js)
-    setResults({ subjectKey, levelKey: subject.levelKey, correct, total, weak, strong });
+    // первичный балл = сумма весов; перевод в шкалу — в lib/scoring.js
+    setResults({ subjectKey, levelKey: subject.levelKey, primary, correct, total, weak, strong });
     navigate("/results");
   }
 

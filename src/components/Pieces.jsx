@@ -60,7 +60,7 @@ export function ScoreView({ sc }) {
       <div style={{ textAlign: "center" }}>
         <div style={{ fontSize: 68, fontWeight: 800, color, lineHeight: 1 }}>{sc.mark}</div>
         <div style={{ fontSize: 14, fontWeight: 600, color: C.mut, marginTop: 2 }}>ожидаемая оценка ОГЭ</div>
-        <div style={{ fontSize: 12.5, color: C.soft, marginTop: 6 }}>≈ {sc.percent}% верно · {sc.primary} из {sc.max} первичных баллов</div>
+        <div style={{ fontSize: 12.5, color: C.soft, marginTop: 6 }}>{sc.primary} из {sc.max} первичных баллов</div>
         {!sc.passed && <div style={{ fontSize: 12.5, color: "#DC2626", marginTop: 4 }}>Пока ниже порога — давай подтянем темы.</div>}
       </div>
     );

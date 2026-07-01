@@ -33,14 +33,16 @@ export function AppProvider({ children }) {
   const scoreFor = (subjectKey) => {
     const r = resultsBySubject[subjectKey];
     if (!r) return null;
-    return estimateScore(subjectKey, r.levelKey, r.correct, r.total, studiedFor(subjectKey).length);
+    // первичный балл = сумма весов верных (fallback на старые записи без primary)
+    const primary = r.primary != null ? r.primary : (r.correct || 0);
+    return estimateScore(subjectKey, r.levelKey, primary, studiedFor(subjectKey).length);
   };
   const studentSummaryFor = (subjectKey) => {
     const r = resultsBySubject[subjectKey];
     if (!r) return null;
     const s = SUBJECTS[subjectKey];
     const sc = scoreFor(subjectKey);
-    const res = sc.kind === "oge" ? `ожидаемая оценка ${sc.mark} из 5 (~${sc.percent}% верно)` : `прогноз ~${sc.score} тестовых баллов из 100`;
+    const res = sc.kind === "oge" ? `ожидаемая оценка ${sc.mark} из 5 (${sc.primary} из ${sc.max} первичных)` : `прогноз ~${sc.score} тестовых баллов из 100`;
     return `Диагностика по предмету «${s?.name}» (${s?.level}): ${res}. ` +
       `Сильные темы: ${r.strong.length ? r.strong.join(", ") : "—"}. ` +
       `Темы для улучшения: ${r.weak.length ? r.weak.join(", ") : "—"}.`;

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Flame, Award, CheckCircle2, Users, ChevronDown, ChevronUp, LogOut, Mail, ClipboardList } from "lucide-react";
+import { Flame, Award, CheckCircle2, Users, ChevronDown, ChevronUp, LogOut, Mail, ClipboardList, Settings } from "lucide-react";
 import Button from "../components/ui/Button";
 import { Stat, ScoreView } from "../components/Pieces";
 import { ExamBlock } from "../components/ExamReminder";
@@ -36,7 +36,10 @@ export default function Progress() {
             <div style={{ fontSize: 15.5, fontWeight: 700 }}>{user.name || "Аккаунт"}</div>
             {user.email && <div style={{ fontSize: 13, color: C.mut, display: "flex", alignItems: "center", gap: 5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}><Mail size={13} /> {user.email}</div>}
           </div>
-          <Button size="sm" variant="soft" color={C.mut} onClick={logout}><LogOut size={15} /> Выйти</Button>
+          <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+            <Button size="sm" variant="soft" color={C.purple} onClick={() => navigate("/settings")}><Settings size={15} /> Настройки</Button>
+            <Button size="sm" variant="soft" color={C.mut} onClick={logout}><LogOut size={15} /> Выйти</Button>
+          </div>
         </div>
       ) : (
         <div style={{ display: "flex", alignItems: "center", gap: 12, background: C.lavBg, border: `1px solid ${C.line}`, borderRadius: 16, padding: "14px 18px", marginBottom: 18, flexWrap: "wrap" }}>
