@@ -1,24 +1,20 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { getToken, setToken, authHeaders } from "../lib/auth";
+import { accounts, scramble, emailId, phoneId, normalizePhone, validEmail, validPhone } from "../lib/accounts";
 
 const AuthContext = createContext(null);
 const PROFILE_KEY = "vs_profile";
-const validEmail = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(e || "").trim());
 
-function cacheProfile(u) {
-  try { u ? localStorage.setItem(PROFILE_KEY, JSON.stringify(u)) : localStorage.removeItem(PROFILE_KEY); } catch { /* ignore */ }
-}
-function readCache() {
-  try { return JSON.parse(localStorage.getItem(PROFILE_KEY) || "null"); } catch { return null; }
-}
+const cacheProfile = (u) => { try { u ? localStorage.setItem(PROFILE_KEY, JSON.stringify(u)) : localStorage.removeItem(PROFILE_KEY); } catch { /* ignore */ } };
+const readCache = () => { try { return JSON.parse(localStorage.getItem(PROFILE_KEY) || "null"); } catch { return null; } };
+const isDemoToken = (t) => typeof t === "string" && t.startsWith("demo.");
 
 async function api(path, { method = "GET", body, auth = false } = {}) {
   const headers = { "Content-Type": "application/json", ...(auth ? authHeaders() : {}) };
   let r;
   try { r = await fetch(path, { method, headers, body: body ? JSON.stringify(body) : undefined }); }
   catch { throw new Error("network"); }
-  let data = {};
-  try { data = await r.json(); } catch { /* пусто */ }
+  let data = {}; try { data = await r.json(); } catch { /* пусто */ }
   if (!r.ok) throw new Error(data.error || "request_failed");
   return data;
 }
@@ -29,35 +25,92 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     (async () => {
-      if (!getToken()) { setLoading(false); return; }
+      const token = getToken();
+      if (!token) { setLoading(false); return; }
       const cached = readCache();
       if (cached) setUser(cached);
+      // Локальная (демо) сессия — не дёргаем сервер, чтобы не разлогинить.
+      if (isDemoToken(token)) { setLoading(false); return; }
       try {
         const d = await api("/api/auth/me", { auth: true });
         setUser(d.user); cacheProfile(d.user);
       } catch (e) {
         if (e.message === "unauthorized") { setToken(null); cacheProfile(null); setUser(null); }
-        // network — оставляем кэш
       } finally { setLoading(false); }
     })();
   }, []);
 
-  function apply(d) { setToken(d.token); setUser(d.user); cacheProfile(d.user); return d.user; }
+  const applyServer = (d) => { setToken(d.token); setUser(d.user); cacheProfile(d.user); return d.user; };
+  const localSession = (acc) => {
+    const token = "demo." + btoa(unescape(encodeURIComponent(acc.id))).slice(0, 40);
+    setToken(token);
+    const u = { id: acc.id, email: acc.email || null, phone: acc.phone || null, name: acc.name, age: acc.age, plan: "free", twofa: !!acc.twofa, provider: acc.provider };
+    setUser(u); cacheProfile(u); return u;
+  };
 
-  // Регистрация: e-mail + пароль, затем имя и возраст.
+  // --- Регистрация по e-mail ---
   async function registerEmail(email, password, name, age) {
     if (!validEmail(email)) throw new Error("invalid_email");
     if ((password || "").length < 6) throw new Error("weak_password");
-    return apply(await api("/api/auth/register", { method: "POST", body: { email: email.trim(), password, name, age } }));
+    const id = emailId(email);
+    const mail = email.trim().toLowerCase();
+    try {
+      const d = await api("/api/auth/register", { method: "POST", body: { email: mail, password, name, age } });
+      accounts.create({ id, provider: "email", email: mail, name, age, pw: scramble(password) });
+      return applyServer(d);
+    } catch (e) {
+      if (e.message === "network" || e.message === "request_failed") {
+        if (accounts.exists(id)) throw new Error("exists");
+        return localSession(accounts.create({ id, provider: "email", email: mail, name, age, pw: scramble(password) }));
+      }
+      throw e; // exists / invalid_age и т.п.
+    }
   }
 
-  // Вход по почте — только с паролем.
+  // --- Вход по e-mail ---
   async function loginEmail(email, password) {
     if (!validEmail(email)) throw new Error("invalid_email");
-    return apply(await api("/api/auth/login", { method: "POST", body: { email: email.trim(), password } }));
+    const id = emailId(email);
+    try {
+      return applyServer(await api("/api/auth/login", { method: "POST", body: { email: email.trim().toLowerCase(), password } }));
+    } catch (e) {
+      if (["network", "request_failed", "bad_credentials"].includes(e.message) && accounts.verify(id, password)) {
+        return localSession(accounts.get(id));
+      }
+      throw new Error(e.message === "bad_credentials" ? "bad_credentials" : e.message);
+    }
   }
 
-  // VK ID — разрешённый российский сервис авторизации.
+  // --- Восстановление пароля (демо: без письма, задаём новый пароль сразу) ---
+  async function resetPassword(email, newPassword) {
+    if (!validEmail(email)) throw new Error("invalid_email");
+    if ((newPassword || "").length < 6) throw new Error("weak_password");
+    const id = emailId(email);
+    if (!accounts.exists(id)) throw new Error("no_account");
+    accounts.setPassword(id, newPassword);
+    // прод: отправить ссылку для сброса на почту / вызвать серверный эндпоинт
+    return true;
+  }
+
+  // --- Вход/регистрация по номеру телефона (демо: код из 4 цифр) ---
+  const phoneExists = (phone) => accounts.exists(phoneId(phone));
+  async function requestPhoneCode(phone) {
+    if (!validPhone(phone)) throw new Error("invalid_phone");
+    // прод: отправить СМС с кодом через российского провайдера. В демо — любой код 0000–9999.
+    return true;
+  }
+  async function phoneAuth(phone, code, name, age) {
+    if (!validPhone(phone)) throw new Error("invalid_phone");
+    if (!/^\d{4}$/.test(String(code || ""))) throw new Error("bad_code");
+    const id = phoneId(phone);
+    if (accounts.exists(id)) return localSession(accounts.get(id));
+    if (!name || !name.trim()) throw new Error("needs_profile");
+    const a = parseInt(age, 10);
+    if (!a || a < 7 || a > 100) throw new Error("invalid_age");
+    return localSession(accounts.create({ id, provider: "phone", phone: normalizePhone(phone), name: name.trim(), age: a }));
+  }
+
+  // --- VK ID ---
   function loginVK() {
     const appId = import.meta.env.VITE_VK_APP_ID || "DEMO";
     const redirect = window.location.origin + "/auth/vk/callback";
@@ -66,23 +119,33 @@ export function AuthProvider({ children }) {
       `&redirect_uri=${encodeURIComponent(redirect)}&response_type=code&scope=email&v=5.131`;
   }
   async function completeVK(code) {
-    const d = await api("/api/auth/vk", { method: "POST", body: { code, redirectUri: window.location.origin + "/auth/vk/callback" } });
-    return apply(d);
+    return applyServer(await api("/api/auth/vk", { method: "POST", body: { code, redirectUri: window.location.origin + "/auth/vk/callback" } }));
   }
 
-  // --- Настройки ---
+  // --- Настройки (сервер + локальный фолбэк) ---
   async function updateName(name) {
     if (!name || !name.trim()) throw new Error("empty_name");
-    const d = await api("/api/account/name", { method: "POST", auth: true, body: { name: name.trim() } });
-    setUser(d.user); cacheProfile(d.user);
+    const id = user.id; const nm = name.trim();
+    if (accounts.exists(id)) accounts.update(id, { name: nm });
+    try { await api("/api/account/name", { method: "POST", auth: true, body: { name: nm } }); } catch { /* локально уже применили */ }
+    const u = { ...user, name: nm }; setUser(u); cacheProfile(u);
   }
   async function changePassword(oldPassword, newPassword) {
     if ((newPassword || "").length < 6) throw new Error("weak_password");
+    const id = user.id;
+    if (accounts.exists(id)) {
+      if (!accounts.verify(id, oldPassword)) throw new Error("bad_password");
+      accounts.setPassword(id, newPassword);
+      try { await api("/api/account/password", { method: "POST", auth: true, body: { oldPassword, newPassword } }); } catch { /* локально ок */ }
+      return;
+    }
     await api("/api/account/password", { method: "POST", auth: true, body: { oldPassword, newPassword } });
   }
   async function setTwoFactor(enabled) {
-    const d = await api("/api/account/twofa", { method: "POST", auth: true, body: { enabled } });
-    setUser(d.user); cacheProfile(d.user);
+    const id = user.id;
+    if (accounts.exists(id)) accounts.update(id, { twofa: !!enabled });
+    try { await api("/api/account/twofa", { method: "POST", auth: true, body: { enabled } }); } catch { /* локально ок */ }
+    const u = { ...user, twofa: !!enabled }; setUser(u); cacheProfile(u);
   }
 
   function logout() { setToken(null); cacheProfile(null); setUser(null); }
@@ -90,7 +153,9 @@ export function AuthProvider({ children }) {
   return (
     <AuthContext.Provider value={{
       user, loading,
-      registerEmail, loginEmail, loginVK, completeVK, logout,
+      registerEmail, loginEmail, resetPassword,
+      phoneExists, requestPhoneCode, phoneAuth,
+      loginVK, completeVK, logout,
       updateName, changePassword, setTwoFactor,
       isEmailUser: user?.provider === "email",
     }}>
