@@ -32,7 +32,7 @@ export function AuthProvider({ children }) {
       // Локальная (демо) сессия — не дёргаем сервер, чтобы не разлогинить.
       if (isDemoToken(token)) { setLoading(false); return; }
       try {
-        const d = await api("/api/auth/me", { auth: true });
+        const d = await api("/api/auth?action=me", { auth: true });
         setUser(d.user); cacheProfile(d.user);
       } catch (e) {
         if (e.message === "unauthorized") { setToken(null); cacheProfile(null); setUser(null); }
@@ -55,7 +55,7 @@ export function AuthProvider({ children }) {
     const id = emailId(email);
     const mail = email.trim().toLowerCase();
     try {
-      const d = await api("/api/auth/register", { method: "POST", body: { email: mail, password, name, age } });
+      const d = await api("/api/auth?action=register", { method: "POST", body: { email: mail, password, name, age } });
       accounts.create({ id, provider: "email", email: mail, name, age, pw: scramble(password) });
       return applyServer(d);
     } catch (e) {
@@ -72,7 +72,7 @@ export function AuthProvider({ children }) {
     if (!validEmail(email)) throw new Error("invalid_email");
     const id = emailId(email);
     try {
-      return applyServer(await api("/api/auth/login", { method: "POST", body: { email: email.trim().toLowerCase(), password } }));
+      return applyServer(await api("/api/auth?action=login", { method: "POST", body: { email: email.trim().toLowerCase(), password } }));
     } catch (e) {
       if (["network", "request_failed", "bad_credentials"].includes(e.message) && accounts.verify(id, password)) {
         return localSession(accounts.get(id));
@@ -92,7 +92,7 @@ export function AuthProvider({ children }) {
     if (!validEmail(email)) throw new Error("invalid_email");
     const mail = email.trim().toLowerCase();
     try {
-      const d = await api("/api/auth/forgot/request", { method: "POST", body: { email: mail } });
+      const d = await api("/api/auth?action=forgot-request", { method: "POST", body: { email: mail } });
       return { demoCode: d.devCode || null };
     } catch (e) {
       if (e.message !== "network" && e.message !== "request_failed") throw e;
@@ -111,7 +111,7 @@ export function AuthProvider({ children }) {
     const mail = email.trim().toLowerCase();
     const id = emailId(mail);
     try {
-      const d = await api("/api/auth/forgot/verify", { method: "POST", body: { email: mail, code, newPassword } });
+      const d = await api("/api/auth?action=forgot-verify", { method: "POST", body: { email: mail, code, newPassword } });
       if (accounts.exists(id)) accounts.setPassword(id, newPassword); // синхронизируем локальную копию
       return applyServer(d); // автоматический вход
     } catch (e) {
@@ -152,7 +152,7 @@ export function AuthProvider({ children }) {
       `&redirect_uri=${encodeURIComponent(redirect)}&response_type=code&scope=email&v=5.131`;
   }
   async function completeVK(code) {
-    return applyServer(await api("/api/auth/vk", { method: "POST", body: { code, redirectUri: window.location.origin + "/auth/vk/callback" } }));
+    return applyServer(await api("/api/auth?action=vk", { method: "POST", body: { code, redirectUri: window.location.origin + "/auth/vk/callback" } }));
   }
 
   // --- Настройки (сервер + локальный фолбэк) ---
@@ -160,7 +160,7 @@ export function AuthProvider({ children }) {
     if (!name || !name.trim()) throw new Error("empty_name");
     const id = user.id; const nm = name.trim();
     if (accounts.exists(id)) accounts.update(id, { name: nm });
-    try { await api("/api/account/name", { method: "POST", auth: true, body: { name: nm } }); } catch { /* локально уже применили */ }
+    try { await api("/api/account?action=name", { method: "POST", auth: true, body: { name: nm } }); } catch { /* локально уже применили */ }
     const u = { ...user, name: nm }; setUser(u); cacheProfile(u);
   }
   async function changePassword(oldPassword, newPassword) {
@@ -169,15 +169,15 @@ export function AuthProvider({ children }) {
     if (accounts.exists(id)) {
       if (!accounts.verify(id, oldPassword)) throw new Error("bad_password");
       accounts.setPassword(id, newPassword);
-      try { await api("/api/account/password", { method: "POST", auth: true, body: { oldPassword, newPassword } }); } catch { /* локально ок */ }
+      try { await api("/api/account?action=password", { method: "POST", auth: true, body: { oldPassword, newPassword } }); } catch { /* локально ок */ }
       return;
     }
-    await api("/api/account/password", { method: "POST", auth: true, body: { oldPassword, newPassword } });
+    await api("/api/account?action=password", { method: "POST", auth: true, body: { oldPassword, newPassword } });
   }
   async function setTwoFactor(enabled) {
     const id = user.id;
     if (accounts.exists(id)) accounts.update(id, { twofa: !!enabled });
-    try { await api("/api/account/twofa", { method: "POST", auth: true, body: { enabled } }); } catch { /* локально ок */ }
+    try { await api("/api/account?action=twofa", { method: "POST", auth: true, body: { enabled } }); } catch { /* локально ок */ }
     const u = { ...user, twofa: !!enabled }; setUser(u); cacheProfile(u);
   }
 

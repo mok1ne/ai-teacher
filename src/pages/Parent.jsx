@@ -23,7 +23,7 @@ export default function Parent() {
     if (!user) { navigate("/login?next=/parent"); return; }
     setBusy(true); setErr("");
     try {
-      const r = await fetch("/api/payment/create", {
+      const r = await fetch("/api/payment?action=create", {
         method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify({ plan: picked }),
       });

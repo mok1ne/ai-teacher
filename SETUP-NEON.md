@@ -36,11 +36,19 @@ vercel dev        # поднимет и фронтенд, и функции api/
 (Обычный `npm run dev` запускает только фронтенд, без серверных функций.)
 
 ## Эндпоинты
-- `POST /api/auth/register` — регистрация (email, пароль, имя, возраст)
-- `POST /api/auth/login` — вход по email + пароль
-- `POST /api/auth/vk` — вход через VK ID
-- `GET  /api/auth/me` — профиль по токену
-- `POST /api/auth/forgot/request` — отправить код на почту
-- `POST /api/auth/forgot/verify` — проверить код, сменить пароль, автовход
-- `POST /api/account/name` | `/password` | `/twofa` — настройки
-- `GET/POST /api/progress` — загрузка/сохранение результатов на аккаунте
+На Hobby-плане Vercel лимит — 12 serverless-функций (каждый файл в `api/` = функция;
+файлы в `api/_lib/` не считаются). Поэтому связанные ручки объединены в роутеры,
+действие передаётся параметром `?action=`. Итого 5 функций: `auth`, `account`,
+`payment`, `progress`, `chat`.
+
+- `POST /api/auth?action=register` — регистрация (email, пароль, имя, возраст)
+- `POST /api/auth?action=login` — вход по email + пароль
+- `POST /api/auth?action=vk` — вход через VK ID
+- `GET  /api/auth?action=me` — профиль по токену
+- `POST /api/auth?action=forgot-request` — отправить код на почту
+- `POST /api/auth?action=forgot-verify` — проверить код, сменить пароль, автовход
+- `POST /api/account?action=name` | `?action=password` | `?action=twofa` — настройки
+- `GET/POST /api/progress` — результаты на аккаунте
+- `POST /api/payment?action=create` — создать платёж (ЮKassa)
+- Вебхук ЮKassa: укажите в кабинете ЮKassa URL `https://<домен>/api/payment?action=webhook`
+- `POST /api/chat` — прокси к ИИ
