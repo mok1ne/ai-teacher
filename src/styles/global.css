@@ -53,3 +53,15 @@ a { color: inherit; }
   .btn-row > button, .btn-row > a { flex: 1 1 100%; justify-content: center; }
   .source-panel { max-height: 130px; }
 }
+
+/* Убираем жёлтую/синюю подсветку браузера при автозаполнении почты/телефона */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: #0b1020;
+  transition: background-color 100000s ease-in-out 0s;
+  box-shadow: none !important;
+  caret-color: #0b1020;
+}

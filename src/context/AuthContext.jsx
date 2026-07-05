@@ -81,15 +81,48 @@ export function AuthProvider({ children }) {
     }
   }
 
-  // --- Восстановление пароля (демо: без письма, задаём новый пароль сразу) ---
-  async function resetPassword(email, newPassword) {
+  // --- Восстановление пароля через код на почту ---
+  // Демо: код генерируется и возвращается для показа. В проде — отправка письма
+  // с кодом через провайдер (Resend/SMTP) и хранение кода на сервере (Neon).
+  const RKEY = "vs_reset";
+  const readReset = () => { try { return JSON.parse(localStorage.getItem(RKEY) || "{}"); } catch { return {}; } };
+  const writeReset = (v) => { try { localStorage.setItem(RKEY, JSON.stringify(v)); } catch { /* ignore */ } };
+
+  async function requestResetCode(email) {
+    if (!validEmail(email)) throw new Error("invalid_email");
+    const mail = email.trim().toLowerCase();
+    try {
+      const d = await api("/api/auth/forgot/request", { method: "POST", body: { email: mail } });
+      return { demoCode: d.devCode || null };
+    } catch (e) {
+      if (e.message !== "network" && e.message !== "request_failed") throw e;
+      // локальный фолбэк (оффлайн/без бэкенда)
+      const id = emailId(mail);
+      if (!accounts.exists(id)) throw new Error("no_account");
+      const code = String(Math.floor(1000 + Math.random() * 9000));
+      const all = readReset(); all[id] = { code, exp: Date.now() + 10 * 60 * 1000 }; writeReset(all);
+      return { demoCode: code };
+    }
+  }
+
+  async function resetPasswordWithCode(email, code, newPassword) {
     if (!validEmail(email)) throw new Error("invalid_email");
     if ((newPassword || "").length < 6) throw new Error("weak_password");
-    const id = emailId(email);
-    if (!accounts.exists(id)) throw new Error("no_account");
-    accounts.setPassword(id, newPassword);
-    // прод: отправить ссылку для сброса на почту / вызвать серверный эндпоинт
-    return true;
+    const mail = email.trim().toLowerCase();
+    const id = emailId(mail);
+    try {
+      const d = await api("/api/auth/forgot/verify", { method: "POST", body: { email: mail, code, newPassword } });
+      if (accounts.exists(id)) accounts.setPassword(id, newPassword); // синхронизируем локальную копию
+      return applyServer(d); // автоматический вход
+    } catch (e) {
+      if (e.message !== "network" && e.message !== "request_failed") throw e;
+      const rec = readReset()[id];
+      if (!rec || rec.exp < Date.now() || rec.code !== String(code || "").trim()) throw new Error("bad_code");
+      if (!accounts.exists(id)) throw new Error("no_account");
+      accounts.setPassword(id, newPassword);
+      const all = readReset(); delete all[id]; writeReset(all);
+      return localSession(accounts.get(id));
+    }
   }
 
   // --- Вход/регистрация по номеру телефона (демо: код из 4 цифр) ---
@@ -153,7 +186,7 @@ export function AuthProvider({ children }) {
   return (
     <AuthContext.Provider value={{
       user, loading,
-      registerEmail, loginEmail, resetPassword,
+      registerEmail, loginEmail, requestResetCode, resetPasswordWithCode,
       phoneExists, requestPhoneCode, phoneAuth,
       loginVK, completeVK, logout,
       updateName, changePassword, setTwoFactor,

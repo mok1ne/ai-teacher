@@ -30,16 +30,33 @@ function Field({ icon: Icon, ...props }) {
 }
 const submitBtn = { width: "100%", justifyContent: "center", padding: "13px" };
 
+// Всегда приводим ввод к формату +7 XXX XXX-XX-XX. Если начинают не с 7/8 —
+// +7 подставляется автоматически (910… → +7 910…); «8…» → +7…
+function formatPhone(v) {
+  let d = String(v || "").replace(/\D/g, "");
+  if (d.startsWith("8")) d = "7" + d.slice(1);
+  if (d.startsWith("7")) d = d.slice(1);
+  d = d.slice(0, 10);
+  let out = "+7";
+  if (d.length) out += " " + d.slice(0, 3);
+  if (d.length > 3) out += " " + d.slice(3, 6);
+  if (d.length > 6) out += "-" + d.slice(6, 8);
+  if (d.length > 8) out += "-" + d.slice(8, 10);
+  return out;
+}
+
 export default function Login() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const next = params.get("next") || "/";
-  const { user, loading, loginEmail, registerEmail, resetPassword, phoneExists, requestPhoneCode, phoneAuth, loginVK } = useAuth();
+  const { user, loading, loginEmail, registerEmail, requestResetCode, resetPasswordWithCode, phoneExists, requestPhoneCode, phoneAuth, loginVK } = useAuth();
 
   const [method, setMethod] = useState("email");   // email | phone
   const [mode, setMode] = useState("login");        // login | register (для почты)
   const [step, setStep] = useState(1);              // регистрация по почте
   const [forgot, setForgot] = useState(false);
+  const [forgotStep, setForgotStep] = useState("request"); // request | code
+  const [resetCode, setResetCode] = useState("");
   const [phoneStep, setPhoneStep] = useState("phone"); // phone | code | profile
 
   const [email, setEmail] = useState("");
@@ -82,13 +99,24 @@ export default function Login() {
     catch (e) { fail(e); if (e.message === "exists") { setMode("login"); } setStep(1); }
     finally { setBusy(false); }
   };
-  // --- почта: восстановление ---
-  const doReset = async () => {
+  // --- почта: восстановление (шаг 1 — запрос кода) ---
+  const doRequestCode = async () => {
     resetState();
+    setBusy(true);
+    try {
+      const { demoCode } = await requestResetCode(email.trim());
+      setForgotStep("code");
+      setInfo(demoCode ? `Демо: код отправлен бы на почту. Ваш код — ${demoCode}` : "Код отправлен на вашу почту.");
+    } catch (e) { fail(e); } finally { setBusy(false); }
+  };
+  // --- почта: восстановление (шаг 2 — код + новый пароль, затем автовход) ---
+  const doResetCode = async () => {
+    resetState();
+    if (!/^\d{4}$/.test(resetCode)) return setErr(MSG.bad_code);
     if (password.length < 6) return setErr(MSG.weak_password);
     if (password !== password2) return setErr(MSG.password_mismatch);
     setBusy(true);
-    try { await resetPassword(email.trim(), password); setForgot(false); setPassword(""); setPassword2(""); setInfo("Пароль обновлён — теперь войдите."); }
+    try { await resetPasswordWithCode(email.trim(), resetCode, password); navigate(next); }
     catch (e) { fail(e); } finally { setBusy(false); }
   };
 
@@ -116,7 +144,7 @@ export default function Login() {
     catch (e) { fail(e); } finally { setBusy(false); }
   };
 
-  const switchMethod = (m) => { setMethod(m); setForgot(false); setStep(1); setPhoneStep("phone"); resetState(); };
+  const switchMethod = (m) => { setMethod(m); setForgot(false); setForgotStep("request"); setResetCode(""); setStep(1); setPhoneStep("phone"); resetState(); };
   const switchMode = (m) => { setMode(m); setStep(1); setForgot(false); resetState(); setPassword(""); setPassword2(""); };
 
   return (
@@ -155,7 +183,7 @@ export default function Login() {
                 <Field icon={Mail} type="email" value={email} placeholder="you@example.com" autoComplete="email" onChange={(e) => setEmail(e.target.value)} />
                 <Field icon={Lock} type="password" value={password} placeholder="Пароль" autoComplete="current-password" onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && doLogin()} />
                 <div style={{ textAlign: "right" }}>
-                  <button onClick={() => { setForgot(true); resetState(); setPassword(""); setPassword2(""); }} style={{ background: "none", border: "none", cursor: "pointer", color: C.purple, fontSize: 13, fontFamily: "inherit" }}>Забыли пароль?</button>
+                  <button onClick={() => { setForgot(true); setForgotStep("request"); setResetCode(""); resetState(); setPassword(""); setPassword2(""); }} style={{ background: "none", border: "none", cursor: "pointer", color: C.purple, fontSize: 13, fontFamily: "inherit" }}>Забыли пароль?</button>
                 </div>
                 <Button onClick={doLogin} disabled={busy} style={submitBtn}>{busy ? "Входим…" : "Войти"}</Button>
               </div>
@@ -185,11 +213,26 @@ export default function Login() {
         {method === "email" && forgot && (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <div style={{ fontSize: 14, fontWeight: 700 }}>Восстановление пароля</div>
-            <Field icon={Mail} type="email" value={email} placeholder="Почта аккаунта" autoComplete="email" onChange={(e) => setEmail(e.target.value)} />
-            <Field icon={Lock} type="password" value={password} placeholder="Новый пароль (от 6 символов)" autoComplete="new-password" onChange={(e) => setPassword(e.target.value)} />
-            <Field icon={Lock} type="password" value={password2} placeholder="Повторите новый пароль" autoComplete="new-password" onChange={(e) => setPassword2(e.target.value)} onKeyDown={(e) => e.key === "Enter" && doReset()} />
-            <Button onClick={doReset} disabled={busy} style={submitBtn}>{busy ? "Сохраняем…" : "Сохранить новый пароль"}</Button>
-            <button onClick={() => { setForgot(false); resetState(); }} style={{ background: "none", border: "none", cursor: "pointer", color: C.soft, fontSize: 13, fontFamily: "inherit" }}>← Назад ко входу</button>
+
+            {forgotStep === "request" && (
+              <>
+                <div style={{ fontSize: 13, color: C.mut }}>Укажите почту аккаунта — пришлём код для смены пароля.</div>
+                <Field icon={Mail} type="email" value={email} placeholder="Почта аккаунта" autoComplete="email" onChange={(e) => setEmail(e.target.value)} onKeyDown={(e) => e.key === "Enter" && doRequestCode()} />
+                <Button onClick={doRequestCode} disabled={busy} style={submitBtn}>{busy ? "Отправляем…" : "Отправить код"}</Button>
+              </>
+            )}
+
+            {forgotStep === "code" && (
+              <>
+                <Field icon={Lock} type="text" inputMode="numeric" maxLength={4} value={resetCode} placeholder="Код из письма (4 цифры)" onChange={(e) => setResetCode(e.target.value.replace(/\D/g, ""))} />
+                <Field icon={Lock} type="password" value={password} placeholder="Новый пароль (от 6 символов)" autoComplete="new-password" onChange={(e) => setPassword(e.target.value)} />
+                <Field icon={Lock} type="password" value={password2} placeholder="Повторите новый пароль" autoComplete="new-password" onChange={(e) => setPassword2(e.target.value)} onKeyDown={(e) => e.key === "Enter" && doResetCode()} />
+                <Button onClick={doResetCode} disabled={busy} style={submitBtn}>{busy ? "Меняем…" : "Сменить пароль и войти"}</Button>
+                <button onClick={() => { setForgotStep("request"); setResetCode(""); resetState(); }} style={{ background: "none", border: "none", cursor: "pointer", color: C.soft, fontSize: 13, fontFamily: "inherit" }}>← Изменить почту</button>
+              </>
+            )}
+
+            <button onClick={() => { setForgot(false); setForgotStep("request"); setResetCode(""); resetState(); }} style={{ background: "none", border: "none", cursor: "pointer", color: C.soft, fontSize: 13, fontFamily: "inherit" }}>← Назад ко входу</button>
           </div>
         )}
 
@@ -198,7 +241,7 @@ export default function Login() {
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {phoneStep === "phone" && (
               <>
-                <Field icon={Phone} type="tel" value={phone} placeholder="+7 900 000-00-00" autoComplete="tel" onChange={(e) => setPhone(e.target.value)} onKeyDown={(e) => e.key === "Enter" && sendCode()} />
+                <Field icon={Phone} type="tel" value={phone} placeholder="+7 900 000-00-00" autoComplete="tel" onChange={(e) => setPhone(formatPhone(e.target.value))} onKeyDown={(e) => e.key === "Enter" && sendCode()} />
                 <Button onClick={sendCode} disabled={busy} style={submitBtn}>{busy ? "Отправляем…" : "Получить код"}</Button>
               </>
             )}

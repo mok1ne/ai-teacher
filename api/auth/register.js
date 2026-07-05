@@ -1,6 +1,6 @@
 import { signToken } from "../_lib/auth.js";
 import { hashPassword } from "../_lib/password.js";
-import { getUserByEmail, saveUser, publicUser } from "../_lib/users.js";
+import { getUserByEmail, createUser, publicUser } from "../_lib/users.js";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "method_not_allowed" });
@@ -20,7 +20,7 @@ export default async function handler(req, res) {
     plan: "free", twofa: false, provider: "email",
     passwordHash: hashPassword(password), createdAt: Date.now(),
   };
-  await saveUser(user);
+  await createUser(user);
   const token = signToken({ id: user.id, email: mail, iat: Date.now() });
   return res.status(200).json({ token, user: publicUser(user) });
 }
