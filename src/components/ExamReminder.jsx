@@ -77,7 +77,7 @@ export function ExamBlock({ subjectKey }) {
   const passed = d < 0;
   const urgent = d >= 0 && d <= 14;
   const accent = passed ? C.mut : urgent ? C.amberDk : C.blue;
-  const bg = passed ? "#F1F5F9" : urgent ? C.creamBg : C.blueBg;
+  const bg = passed ? C.track : urgent ? C.creamBg : C.blueBg;
 
   return (
     <div style={{ background: bg, borderRadius: 14, padding: "14px 18px", marginBottom: 16, display: "flex", alignItems: "center", gap: 14 }}>

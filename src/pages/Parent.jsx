@@ -70,7 +70,7 @@ export default function Parent() {
       </button>
 
       {/* progress report card — the sales argument */}
-      <div style={{ background: "linear-gradient(120deg,#EFF4FF,#F4EEFE)", border: `1px solid ${C.line}`, borderRadius: 20, padding: "22px 24px", marginBottom: 26 }}>
+      <div style={{ background: `linear-gradient(120deg,${C.blueBg},${C.lavBg})`, border: `1px solid ${C.line}`, borderRadius: 20, padding: "22px 24px", marginBottom: 26 }}>
         <div style={{ fontSize: 12.5, fontWeight: 700, color: C.soft, textTransform: "uppercase" }}>Отчёт о прогрессе для родителя</div>
         <div style={{ display: "flex", gap: 26, alignItems: "center", flexWrap: "wrap", marginTop: 10 }}>
           <div><div style={{ fontSize: 38, fontWeight: 800, color: C.blue }}>{scoreLabel}</div><div style={{ fontSize: 13, color: C.mut }}>{scoreCaption}</div></div>

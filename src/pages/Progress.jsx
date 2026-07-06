@@ -130,7 +130,7 @@ export default function Progress() {
                             const done = studied.includes(t);
                             return (
                               <div key={t} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10,
-                                padding: "12px 14px", borderRadius: 12, background: done ? C.mintBg : "#F8FAFC", border: `1px solid ${done ? "#BBF7D0" : C.line}` }}>
+                                padding: "12px 14px", borderRadius: 12, background: done ? C.mintBg : C.track, border: `1px solid ${done ? "#BBF7D0" : C.line}` }}>
                                 <span style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14.5, fontWeight: 600, color: done ? C.greenDk : C.ink }}>
                                   {done ? <CheckCircle2 size={18} style={{ color: C.green }} /> : <span style={{ width: 18, height: 18, borderRadius: "50%", border: `2px solid ${C.soft}` }} />}
                                   {t}

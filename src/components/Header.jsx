@@ -23,7 +23,7 @@ export default function Header() {
   const is = (p) => (p === "/" ? pathname === "/" : pathname.startsWith(p));
 
   return (
-    <header style={{ position: "sticky", top: 0, zIndex: 50, background: "rgba(255,255,255,.88)",
+    <header style={{ position: "sticky", top: 0, zIndex: 50, background: "var(--glass)",
       backdropFilter: "blur(10px)", borderBottom: `1px solid ${C.line}` }}>
       <div style={{ maxWidth: 1300, margin: "0 auto", padding: "13px 22px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
         <Link to="/" style={{ display: "flex", alignItems: "center", gap: 9, textDecoration: "none", color: C.ink }}>

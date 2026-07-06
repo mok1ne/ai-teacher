@@ -175,7 +175,7 @@ export default function Tutor() {
                   onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
                   placeholder={general ? "Спросите что угодно по подготовке…" : "Задайте вопрос по теме…"} rows={1}
                   style={{ flex: 1, resize: "none", padding: "13px 16px", borderRadius: 14, border: `1.5px solid ${C.line}`,
-                    fontSize: 15, fontFamily: "inherit", outline: "none", maxHeight: 120 }} />
+                    fontSize: 15, fontFamily: "inherit", outline: "none", maxHeight: 120, background: C.card, color: C.ink }} />
                 <Button onClick={send} disabled={busy || !input.trim()} style={{ padding: 13, borderRadius: 14 }}>
                   {busy ? <Loader2 size={20} className="spin" /> : <Send size={20} />}
                 </Button>

@@ -2,11 +2,13 @@
   --bg:#F7F8FB; --card:#FFFFFF; --track:#EEF2F8;
   --ink:#0F172A; --sub:#475569; --mut:#64748B; --soft:#94A3B8; --line:#E6EAF2;
   --blueBg:#EFF4FF; --mintBg:#ECFDF3; --lavBg:#F4EEFE; --creamBg:#FEF7E7;
+  --glass:rgba(255,255,255,.85);
 }
 html[data-theme="dark"] {
   --bg:#0B1020; --card:#141A2B; --track:#1B2233;
   --ink:#EDF1FA; --sub:#B7C0D4; --mut:#93A0B8; --soft:#6E7890; --line:#252E42;
   --blueBg:#16233F; --mintBg:#10281D; --lavBg:#221A38; --creamBg:#2A2413;
+  --glass:rgba(11,16,32,.72);
 }
 
 /* ===== base ===== */
@@ -66,16 +68,16 @@ a { color: inherit; }
   .source-panel { max-height: 130px; }
 }
 
-/* Убираем жёлтую/синюю подсветку браузера при автозаполнении почты/телефона */
+/* Автозаполнение: убираем жёлтую подсветку и красим текст по теме
+   (иначе в тёмной теме автозаполненный текст остаётся чёрным). */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: #0b1020;
+  -webkit-text-fill-color: var(--ink) !important;
+  caret-color: var(--ink);
   transition: background-color 100000s ease-in-out 0s;
   box-shadow: none !important;
-  caret-color: #0b1020;
 }
 
 /* iOS: если у инпута шрифт < 16px, Safari приближает экран при фокусе.
@@ -92,3 +94,6 @@ input:-webkit-autofill:active {
   .settings-nav { flex-direction: row; overflow-x: auto; position: static; padding-bottom: 4px; }
   .settings-nav button { white-space: nowrap; }
 }
+
+/* видимый плейсхолдер в обеих темах */
+input::placeholder, textarea::placeholder { color: var(--soft); opacity: 1; }

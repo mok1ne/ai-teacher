@@ -17,7 +17,7 @@ export default function MobileNav() {
 
   return (
     <nav className="mobile-nav" style={{ position: "fixed", left: 0, right: 0, bottom: 0, height: 60,
-      background: "rgba(255,255,255,.96)", backdropFilter: "blur(10px)", borderTop: `1px solid ${C.line}`,
+      background: "var(--glass)", backdropFilter: "blur(10px)", borderTop: `1px solid ${C.line}`,
       zIndex: 60, justifyContent: "space-around", alignItems: "center" }}>
       {items.map(({ to, label, Icon }) => {
         const active = is(to);

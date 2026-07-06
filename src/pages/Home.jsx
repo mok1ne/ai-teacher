@@ -72,7 +72,7 @@ export default function Home() {
       {/* trust banner */}
       <section className="page" style={{ maxWidth: 1300, margin: "0 auto", padding: "16px 22px" }}>
         <div style={{ borderRadius: 22, padding: "26px 28px", display: "flex", gap: 18, alignItems: "center", flexWrap: "wrap",
-          background: "linear-gradient(120deg,#ECFDF3,#EFF4FF)", border: `1px solid ${C.line}` }}>
+          background: `linear-gradient(120deg,${C.mintBg},${C.blueBg})`, border: `1px solid ${C.line}` }}>
           <div style={{ width: 54, height: 54, borderRadius: 15, background: C.card, display: "grid", placeItems: "center", boxShadow: "0 6px 16px -10px #0f172a66" }}>
             <ShieldCheck size={28} style={{ color: C.green }} />
           </div>

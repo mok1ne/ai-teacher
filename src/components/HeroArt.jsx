@@ -4,9 +4,9 @@ export default function HeroArt() {
   const books = [
     { t: "ЕГЭ", c: C.purple, w: 188 },
     { t: "ОГЭ", c: C.blue, w: 205 },
-    { t: "МАТЕМАТИКА", c: "#fff", tc: C.ink, w: 222, b: true },
-    { t: "РУССКИЙ ЯЗЫК", c: "#fff", tc: C.ink, w: 238, b: true },
-    { t: "ОБЩЕСТВОЗНАНИЕ", c: "#fff", tc: C.ink, w: 255, b: true },
+    { t: "МАТЕМАТИКА", c: "#fff", tc: "#0F172A", w: 222, b: true },
+    { t: "РУССКИЙ ЯЗЫК", c: "#fff", tc: "#0F172A", w: 238, b: true },
+    { t: "ОБЩЕСТВОЗНАНИЕ", c: "#fff", tc: "#0F172A", w: 255, b: true },
   ];
   return (
     <div className="hero-art" style={{ position: "relative", borderRadius: 28, padding: "30px 26px",

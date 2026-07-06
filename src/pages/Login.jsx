@@ -36,7 +36,7 @@ function LevelChoice({ value, onChange }) {
       {[["ege", "ЕГЭ", "11 класс"], ["oge", "ОГЭ", "9 класс"]].map(([v, t, s]) => (
         <button key={v} type="button" onClick={() => onChange(v)}
           style={{ padding: "16px", borderRadius: 14, cursor: "pointer", textAlign: "left", transition: "all .15s",
-            border: `2px solid ${value === v ? C.purple : C.line}`, background: value === v ? C.lavBg : "#fff", fontFamily: "inherit" }}>
+            border: `2px solid ${value === v ? C.purple : C.line}`, background: value === v ? C.lavBg : C.card, fontFamily: "inherit" }}>
           <div style={{ fontSize: 18, fontWeight: 800, color: value === v ? C.purple : C.ink }}>{t}</div>
           <div style={{ fontSize: 12.5, color: C.mut }}>{s}</div>
         </button>
