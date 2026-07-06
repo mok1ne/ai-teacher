@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Flame, Award, CheckCircle2, Users, ChevronDown, ChevronUp, LogOut, Mail, ClipboardList, Settings } from "lucide-react";
+import { Flame, Award, CheckCircle2, Users, ChevronDown, ChevronUp, LogOut, Mail, ClipboardList, Settings, Share2 } from "lucide-react";
 import Button from "../components/ui/Button";
 import { Stat, ScoreView } from "../components/Pieces";
 import { ExamBlock } from "../components/ExamReminder";
@@ -15,6 +15,19 @@ export default function Progress() {
   const { user, logout } = useAuth();
   const keys = Object.keys(resultsBySubject).filter((k) => SUBJECTS[k]);
   const [open, setOpen] = useState(lastSubjectKey && resultsBySubject[lastSubjectKey] ? lastSubjectKey : (keys[0] || null));
+  const [shared, setShared] = useState(false);
+  const shareResults = async () => {
+    const lines = keys.map((k) => {
+      const s = SUBJECTS[k]; const sc = scoreFor(k);
+      if (!s || !sc) return null;
+      return sc.kind === "oge" ? `— ${s.name} (${s.level}): ожидаемая оценка ${sc.mark}` : `— ${s.name} (${s.level}): ~${sc.score} баллов`;
+    }).filter(Boolean);
+    const text = `Мои результаты в «Время сдавать»:\n${lines.join("\n")}\n\nГотовлюсь к экзамену с ИИ-наставником.`;
+    try {
+      if (navigator.share) { await navigator.share({ title: "Время сдавать", text }); return; }
+      await navigator.clipboard.writeText(text); setShared(true); setTimeout(() => setShared(false), 2500);
+    } catch { /* пользователь отменил */ }
+  };
 
   const openTutor = (topic, subjectKey) => {
     const s = SUBJECTS[subjectKey];
@@ -28,7 +41,7 @@ export default function Progress() {
 
       {/* профиль / вход */}
       {user ? (
-        <div style={{ display: "flex", alignItems: "center", gap: 12, background: "#fff", border: `1px solid ${C.line}`, borderRadius: 16, padding: "14px 18px", marginBottom: 18, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, background: C.card, border: `1px solid ${C.line}`, borderRadius: 16, padding: "14px 18px", marginBottom: 18, flexWrap: "wrap" }}>
           <div style={{ width: 42, height: 42, borderRadius: "50%", background: C.lavBg, color: C.purple, display: "grid", placeItems: "center", flexShrink: 0, fontWeight: 800, fontSize: 17 }}>
             {(user.name || user.email || "?").slice(0, 1).toUpperCase()}
           </div>
@@ -49,7 +62,7 @@ export default function Progress() {
       )}
 
       {keys.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "40px 20px", background: "#fff", border: `1px solid ${C.line}`, borderRadius: 18 }}>
+        <div style={{ textAlign: "center", padding: "40px 20px", background: C.card, border: `1px solid ${C.line}`, borderRadius: 18 }}>
           <div style={{ width: 56, height: 56, borderRadius: 16, background: C.blueBg, display: "grid", placeItems: "center", margin: "0 auto 14px" }}>
             <ClipboardList size={26} style={{ color: C.blue }} />
           </div>
@@ -72,7 +85,7 @@ export default function Progress() {
           const headLabel = sc.kind === "oge" ? "оценка" : "балл ЕГЭ";
 
           return (
-            <div key={subjectKey} style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 18, overflow: "hidden", boxShadow: expanded ? "0 12px 32px -22px #0f172a66" : "none" }}>
+            <div key={subjectKey} style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 18, overflow: "hidden", boxShadow: expanded ? "0 12px 32px -22px #0f172a66" : "none" }}>
               {/* header row */}
               <button onClick={() => setOpen(expanded ? null : subjectKey)}
                 style={{ width: "100%", background: "none", border: "none", cursor: "pointer", padding: "16px 20px", display: "flex", alignItems: "center", gap: 14, textAlign: "left" }}>
@@ -137,15 +150,17 @@ export default function Progress() {
         })}
       </div>
 
-      {/* parent handoff */}
+      {/* поделиться результатами */}
       <div style={{ marginTop: 20, borderRadius: 20, padding: 24, background: `linear-gradient(120deg,${C.blue},${C.purple})`, color: "#fff",
         display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
-        <Users size={30} />
+        <Share2 size={28} />
         <div style={{ flex: 1, minWidth: 240 }}>
-          <h3 style={{ margin: "0 0 4px", fontSize: 18, fontWeight: 700 }}>Покажите прогресс родителю</h3>
-          <p style={{ margin: 0, fontSize: 14, opacity: .92 }}>Откройте все предметы и проверку сочинений — оформит родитель в один тап.</p>
+          <h3 style={{ margin: "0 0 4px", fontSize: 18, fontWeight: 700 }}>Поделитесь результатами</h3>
+          <p style={{ margin: 0, fontSize: 14, opacity: .92 }}>Отправьте свой прогресс родителям или друзьям — пусть видят, как растёт балл.</p>
         </div>
-        <Button color="#fff" style={{ color: C.blue }} onClick={() => navigate("/parent")}>Поделиться</Button>
+        <Button color="#fff" style={{ color: C.blue }} onClick={shareResults}>
+          {shared ? "Скопировано ✓" : "Поделиться"}
+        </Button>
       </div>
       </>
       )}

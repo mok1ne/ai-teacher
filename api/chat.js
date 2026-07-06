@@ -7,7 +7,7 @@
  * замените на Upstash Redis.
  */
 import { verifyToken, getBearer } from "./_lib/auth.js";
-import { checkAndIncrement } from "./_lib/limiter.js";
+import { check, increment } from "./_lib/limiter.js";
 import { PLAN_LIMITS } from "./_lib/plans.js";
 import { getUserById } from "./_lib/users.js";
 
@@ -25,7 +25,7 @@ export default async function handler(req, res) {
   const ip = (req.headers["x-forwarded-for"] || "").split(",")[0].trim() || "unknown";
   const key = token ? `user:${token.id}` : `ip:${ip}`;
 
-  const gate = checkAndIncrement(key, limit);
+  const gate = check(key, limit);
   if (!gate.allowed) {
     return res.status(429).json({ error: "rate_limited", remaining: 0, limit, plan });
   }
@@ -41,8 +41,9 @@ export default async function handler(req, res) {
       body: JSON.stringify(req.body),
     });
     const data = await r.json();
-    return res.status(r.status).json({ ...data, _remaining: gate.remaining, _limit: limit });
+    if (r.ok) increment(key); // списываем ТОЛЬКО при успешном ответе
+    return res.status(r.status).json({ ...data, _remaining: r.ok ? gate.remaining - 1 : gate.remaining, _limit: limit });
   } catch (e) {
-    return res.status(500).json({ error: "proxy_error" });
+    return res.status(500).json({ error: "proxy_error" }); // сбой — лимит не тратим
   }
 }

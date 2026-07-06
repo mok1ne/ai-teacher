@@ -56,10 +56,10 @@ export default function Tutor() {
 
   async function run(msgs) {
     setBusy(true); setError(false);
-    useOneMessage(); // расходуем сообщение из дневного лимита (клиентский счётчик)
     try {
       const reply = await callClaude(msgs.filter((m) => m.content), topic, examName, source, studentSummary);
       setMessages([...msgs, { role: "assistant", content: reply }]);
+      useOneMessage(); // списываем запрос ТОЛЬКО при успешном ответе
     } catch (e) {
       if (e && e.code === "rate_limited") { setServerBlocked(true); setMessages(msgs); }
       else { setError(true); setMessages(msgs); }
@@ -185,7 +185,7 @@ export default function Tutor() {
         </div>
 
         {/* source panel (RAG grounding made visible) */}
-        <aside className="source-panel" style={{ width: 300, flexShrink: 0, background: "#F8FAFC", border: `1px solid ${C.line}`, borderRadius: 16, padding: 18, overflowY: "auto" }}>
+        <aside className="source-panel" style={{ width: 300, flexShrink: 0, background: C.track, border: `1px solid ${C.line}`, borderRadius: 16, padding: 18, overflowY: "auto" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
             <div style={{ width: 32, height: 32, borderRadius: 9, background: C.mintBg, display: "grid", placeItems: "center" }}>
               <ShieldCheck size={17} style={{ color: C.green }} />

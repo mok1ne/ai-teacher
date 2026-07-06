@@ -58,7 +58,7 @@ export default function Home() {
             { Icon: Brain, c: C.purple, bg: C.lavBg, t: "Разбор с ИИ", d: "Персональный репетитор объясняет именно ваши слабые темы — понятно и по шагам." },
             { Icon: TrendingUp, c: C.green, bg: C.mintBg, t: "Рост балла", d: "Прогресс виден после каждого занятия. Вы движетесь к цели, а не учите всё подряд." },
           ].map((s, i) => (
-            <div key={i} style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 20, padding: 24, boxShadow: "0 8px 24px -18px #0f172a55" }}>
+            <div key={i} style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 20, padding: 24, boxShadow: "0 8px 24px -18px #0f172a55" }}>
               <div style={{ width: 48, height: 48, borderRadius: 13, background: s.bg, display: "grid", placeItems: "center", marginBottom: 14 }}>
                 <s.Icon size={23} style={{ color: s.c }} />
               </div>
@@ -73,7 +73,7 @@ export default function Home() {
       <section className="page" style={{ maxWidth: 1300, margin: "0 auto", padding: "16px 22px" }}>
         <div style={{ borderRadius: 22, padding: "26px 28px", display: "flex", gap: 18, alignItems: "center", flexWrap: "wrap",
           background: "linear-gradient(120deg,#ECFDF3,#EFF4FF)", border: `1px solid ${C.line}` }}>
-          <div style={{ width: 54, height: 54, borderRadius: 15, background: "#fff", display: "grid", placeItems: "center", boxShadow: "0 6px 16px -10px #0f172a66" }}>
+          <div style={{ width: 54, height: 54, borderRadius: 15, background: C.card, display: "grid", placeItems: "center", boxShadow: "0 6px 16px -10px #0f172a66" }}>
             <ShieldCheck size={28} style={{ color: C.green }} />
           </div>
           <div style={{ flex: 1, minWidth: 260 }}>
@@ -96,7 +96,7 @@ export default function Home() {
         <div className="cards-3" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16 }}>
           {subjectsForLevel(level || "ege").map(([key, s]) => (
             <div key={key} onClick={() => s.available && navigate(`/test/${key}`)}
-              style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 18, padding: 20,
+              style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 18, padding: 20,
                 cursor: s.available ? "pointer" : "default", opacity: s.available ? 1 : 0.62,
                 transition: "all .15s", display: "flex", alignItems: "center", gap: 14 }}
               onMouseEnter={(e) => s.available && (e.currentTarget.style.boxShadow = `0 12px 28px -16px ${s.accent}88`)}

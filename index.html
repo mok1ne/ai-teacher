@@ -5,6 +5,16 @@
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ffffff" />
+    <script>
+      (function () {
+        try {
+          var p = localStorage.getItem("vs_theme") || "system";
+          var dark = p === "dark" || (p === "system" && window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches);
+          document.documentElement.dataset.theme = dark ? "dark" : "light";
+        } catch (e) { document.documentElement.dataset.theme = "light"; }
+      })();
+    </script>
     <title>Время сдавать — подготовка к ЕГЭ и ОГЭ</title>
     <meta name="description" content="ИИ-репетитор для подготовки к ЕГЭ и ОГЭ по проверенным источникам ФИПИ." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -20,6 +30,9 @@
         animation:bspin .7s linear infinite}
       @keyframes bspin{to{transform:rotate(360deg)}}
       @media (prefers-color-scheme: dark){#boot{background:#0b1020}#boot .ring{border-color:#232a3d;border-top-color:#a276ff}}
+      html[data-theme="dark"] #boot{background:#0b1020}
+      html[data-theme="dark"] #boot .ring{border-color:#232a3d;border-top-color:#a276ff}
+      html[data-theme="light"] #boot{background:#ffffff}
     </style>
     <div id="boot"><div class="ring"></div></div>
     <div id="root"></div>

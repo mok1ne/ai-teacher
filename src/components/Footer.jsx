@@ -17,7 +17,7 @@ function Col({ title, items }) {
 
 export default function Footer() {
   return (
-    <footer style={{ borderTop: `1px solid ${C.line}`, background: "#FBFCFE" }}>
+    <footer style={{ borderTop: `1px solid ${C.line}`, background: C.bg }}>
       <div style={{ maxWidth: 1300, margin: "0 auto", padding: "34px 22px 26px" }}>
         <div style={{ display: "flex", gap: 40, flexWrap: "wrap", justifyContent: "space-between" }}>
           <div style={{ maxWidth: 320 }}>

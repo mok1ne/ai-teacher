@@ -87,7 +87,7 @@ export default function Parent() {
       <div className="cards-3" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16 }}>
         {tariffs.map((t) => (
           <div key={t.name} onClick={() => setPicked(t.name)}
-            style={{ background: "#fff", borderRadius: 18, padding: 22, cursor: "pointer", position: "relative",
+            style={{ background: C.card, borderRadius: 18, padding: 22, cursor: "pointer", position: "relative",
               border: `2px solid ${picked === t.name ? t.c : t.best ? t.c + "55" : C.line}`,
               boxShadow: picked === t.name ? `0 14px 32px -18px ${t.c}` : "none", transition: "all .15s" }}>
             {t.best && <span style={{ position: "absolute", top: -11, left: "50%", transform: "translateX(-50%)", fontSize: 11, fontWeight: 700, color: "#fff", background: t.c, padding: "3px 12px", borderRadius: 20 }}>Популярный</span>}

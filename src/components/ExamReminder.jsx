@@ -42,7 +42,7 @@ export function ExamBlock({ subjectKey }) {
     const notifDisabled = perm === "unsupported" || perm === "denied";
 
     return (
-      <div style={{ background: "#fff", border: `1.5px solid ${C.blue}33`, borderRadius: 18, padding: "18px 20px", marginBottom: 16 }}>
+      <div style={{ background: C.card, border: `1.5px solid ${C.blue}33`, borderRadius: 18, padding: "18px 20px", marginBottom: 16 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
           <CalendarClock size={20} style={{ color: C.blue }} />
           <h3 style={{ margin: 0, fontSize: 16.5, fontWeight: 700 }}>

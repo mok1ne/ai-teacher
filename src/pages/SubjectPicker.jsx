@@ -19,7 +19,7 @@ export default function SubjectPicker() {
       <div className="cards-2" style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 14 }}>
         {items.map(([key, s]) => (
           <div key={key} onClick={() => s.available && navigate(`/test/${key}`)}
-            style={{ background: "#fff", border: `1.5px solid ${s.available ? s.accent + "33" : C.line}`, borderRadius: 16, padding: 18,
+            style={{ background: C.card, border: `1.5px solid ${s.available ? s.accent + "33" : C.line}`, borderRadius: 16, padding: 18,
               cursor: s.available ? "pointer" : "default", opacity: s.available ? 1 : 0.55, display: "flex", alignItems: "center", gap: 13 }}>
             <div style={{ width: 46, height: 46, borderRadius: 12, background: s.bg, display: "grid", placeItems: "center" }}>
               <s.Icon size={22} style={{ color: s.accent }} />

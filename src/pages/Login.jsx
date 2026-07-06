@@ -177,25 +177,25 @@ export default function Login() {
       </div>
 
       {/* способ входа */}
-      <div style={{ display: "flex", background: "#EEF2F8", borderRadius: 12, padding: 4, gap: 4, marginBottom: 14 }}>
+      <div style={{ display: "flex", background: C.track, borderRadius: 12, padding: 4, gap: 4, marginBottom: 14 }}>
         {[["email", "Почта"], ["phone", "Телефон"]].map(([m, label]) => (
           <button key={m} onClick={() => switchMethod(m)}
             style={{ flex: 1, border: "none", cursor: "pointer", padding: "9px", borderRadius: 9, fontSize: 14.5, fontWeight: 700,
-              background: method === m ? "#fff" : "transparent", color: method === m ? C.purple : C.mut, boxShadow: method === m ? "0 2px 8px -4px #0f172a55" : "none" }}>
+              background: method === m ? C.card : "transparent", color: method === m ? C.purple : C.mut, boxShadow: method === m ? "0 2px 8px -4px #0f172a55" : "none" }}>
             {label}
           </button>
         ))}
       </div>
 
-      <div style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 20, padding: 24, boxShadow: "0 14px 40px -28px #0f172a55" }}>
+      <div style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 20, padding: 24, boxShadow: "0 14px 40px -28px #0f172a55" }}>
         {/* ===== ПОЧТА ===== */}
         {method === "email" && !forgot && (
           <>
-            <div style={{ display: "flex", background: "#F5F7FB", borderRadius: 10, padding: 3, gap: 3, marginBottom: 16 }}>
+            <div style={{ display: "flex", background: C.track, borderRadius: 10, padding: 3, gap: 3, marginBottom: 16 }}>
               {[["login", "Вход"], ["register", "Регистрация"]].map(([m, label]) => (
                 <button key={m} onClick={() => switchMode(m)}
                   style={{ flex: 1, border: "none", cursor: "pointer", padding: "8px", borderRadius: 8, fontSize: 13.5, fontWeight: 700,
-                    background: mode === m ? "#fff" : "transparent", color: mode === m ? C.ink : C.soft }}>{label}</button>
+                    background: mode === m ? C.card : "transparent", color: mode === m ? C.ink : C.soft }}>{label}</button>
               ))}
             </div>
 

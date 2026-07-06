@@ -23,9 +23,9 @@ export default function HeroArt() {
             </div>
           ))}
         </div>
-        <div style={{ width: 196, maxWidth: "100%", background: "#fff", borderRadius: 14, boxShadow: "0 14px 34px -16px #0f172a55",
+        <div style={{ width: 196, maxWidth: "100%", background: C.card, borderRadius: 14, boxShadow: "0 14px 34px -16px #0f172a55",
           border: `1px solid ${C.line}`, overflow: "hidden", alignSelf: "center" }}>
-          <div style={{ background: "#F1F5FB", padding: "7px 10px", display: "flex", gap: 5 }}>
+          <div style={{ background: C.track, padding: "7px 10px", display: "flex", gap: 5 }}>
             {["#F87171", "#FBBF24", "#34D399"].map((c) => <span key={c} style={{ width: 8, height: 8, borderRadius: "50%", background: c }} />)}
           </div>
           <div style={{ padding: 14 }}>

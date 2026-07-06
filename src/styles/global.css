@@ -1,11 +1,23 @@
+:root, html[data-theme="light"] {
+  --bg:#F7F8FB; --card:#FFFFFF; --track:#EEF2F8;
+  --ink:#0F172A; --sub:#475569; --mut:#64748B; --soft:#94A3B8; --line:#E6EAF2;
+  --blueBg:#EFF4FF; --mintBg:#ECFDF3; --lavBg:#F4EEFE; --creamBg:#FEF7E7;
+}
+html[data-theme="dark"] {
+  --bg:#0B1020; --card:#141A2B; --track:#1B2233;
+  --ink:#EDF1FA; --sub:#B7C0D4; --mut:#93A0B8; --soft:#6E7890; --line:#252E42;
+  --blueBg:#16233F; --mintBg:#10281D; --lavBg:#221A38; --creamBg:#2A2413;
+}
+
 /* ===== base ===== */
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
 body {
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  color: #0F172A;
-  background: #fff;
+  color: var(--ink);
+  background: var(--bg);
   -webkit-font-smoothing: antialiased;
+  transition: background-color .25s ease, color .2s ease;
 }
 button, textarea, input { font-family: inherit; }
 a { color: inherit; }
@@ -14,7 +26,7 @@ a { color: inherit; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .spin { animation: spin 1s linear infinite; }
 @keyframes blink { 0%, 80%, 100% { opacity: .25; } 40% { opacity: 1; } }
-.dot { width: 7px; height: 7px; border-radius: 50%; background: #94A3B8; display: inline-block; animation: blink 1.2s infinite; }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--soft); display: inline-block; animation: blink 1.2s infinite; }
 
 /* bottom mobile nav: hidden on desktop */
 .mobile-nav { display: none; }
@@ -70,4 +82,13 @@ input:-webkit-autofill:active {
    Держим 16px на мобильных — приближения не происходит, экран не «дёргается». */
 @media (max-width: 760px) {
   input, textarea, select { font-size: 16px !important; }
+}
+
+/* Настройки: слева меню, справа контент */
+.settings-grid { display: grid; grid-template-columns: 230px 1fr; gap: 22px; align-items: start; }
+.settings-nav { display: flex; flex-direction: column; gap: 4px; position: sticky; top: 20px; }
+@media (max-width: 760px) {
+  .settings-grid { grid-template-columns: 1fr; }
+  .settings-nav { flex-direction: row; overflow-x: auto; position: static; padding-bottom: 4px; }
+  .settings-nav button { white-space: nowrap; }
 }

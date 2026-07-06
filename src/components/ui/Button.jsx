@@ -10,7 +10,7 @@ export default function Button({ children, onClick, color = C.blue, variant = "s
   const skin = variant === "solid"
     ? { background: color, color: "#fff", boxShadow: `0 6px 16px -6px ${color}99` }
     : variant === "soft"
-    ? { background: "#fff", color, border: `1.5px solid ${color}33` }
+    ? { background: C.card, color, border: `1.5px solid ${color}33` }
     : { background: "transparent", color, padding: 0, boxShadow: "none" };
   return (
     <button disabled={disabled} onClick={onClick} style={{ ...base, ...skin, ...style }}

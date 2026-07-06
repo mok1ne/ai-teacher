@@ -12,7 +12,7 @@ export default function ChatBubble({ role, text, typing }) {
       )}
       <div style={{ padding: "12px 16px", borderRadius: 16,
         borderTopLeftRadius: isUser ? 16 : 4, borderTopRightRadius: isUser ? 4 : 16,
-        background: isUser ? C.blue : "#F4F6FB", color: isUser ? "#fff" : C.ink,
+        background: isUser ? C.blue : C.track, color: isUser ? "#fff" : C.ink,
         fontSize: 15, lineHeight: 1.55, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
         {typing
           ? <span style={{ display: "inline-flex", gap: 4 }}>

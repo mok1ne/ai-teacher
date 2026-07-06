@@ -1,21 +1,31 @@
 /*
- * Счётчик запросов с недельным окном (для free — 10/неделю).
- * In-memory: сбрасывается при холодном старте и не общий между инстансами.
- * Для строгого продакшн-лимита храните счётчик в Neon/Redis по ключу недели.
+ * Счётчик запросов, недельное окно (free — 10/неделю).
+ * check() — проверить без списания; increment() — списать (вызываем ТОЛЬКО при
+ * успешном ответе ИИ, чтобы сбой/плохой интернет не тратил лимит).
+ * In-memory: не переживает холодный старт и не общий между инстансами —
+ * для строгого лимита храните счётчик в Neon/Redis.
  */
 const buckets = new Map();
 function weekKey() {
   const d = new Date();
-  const onejan = new Date(d.getFullYear(), 0, 1);
-  const week = Math.ceil(((d - onejan) / 86400000 + onejan.getDay() + 1) / 7);
-  return `${d.getFullYear()}-W${week}`;
+  const o = new Date(d.getFullYear(), 0, 1);
+  const w = Math.ceil(((d - o) / 86400000 + o.getDay() + 1) / 7);
+  return `${d.getFullYear()}-W${w}`;
 }
-
+function current(key) {
+  const b = buckets.get(key); const t = weekKey();
+  return b && b.week === t ? b.count : 0;
+}
+export function check(key, limit) {
+  const c = current(key);
+  return { allowed: c < limit, remaining: Math.max(0, limit - c), limit };
+}
+export function increment(key) {
+  buckets.set(key, { week: weekKey(), count: current(key) + 1 });
+}
 export function checkAndIncrement(key, limit) {
-  const t = weekKey();
-  const b = buckets.get(key);
-  const cur = b && b.week === t ? b.count : 0;
-  if (cur >= limit) return { allowed: false, remaining: 0, limit };
-  buckets.set(key, { week: t, count: cur + 1 });
-  return { allowed: true, remaining: limit - (cur + 1), limit };
+  const r = check(key, limit);
+  if (!r.allowed) return { allowed: false, remaining: 0, limit };
+  increment(key);
+  return { allowed: true, remaining: r.remaining - 1, limit };
 }

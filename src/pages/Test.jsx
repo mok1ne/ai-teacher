@@ -70,7 +70,7 @@ export default function Test() {
 
   return (
     <main className="page" style={{ maxWidth: 1300, margin: "0 auto", padding: "30px 20px 60px" }}>
-      <div style={{ maxWidth: 760, margin: "0 auto", background: "#fff", border: `1px solid ${C.line}`, borderRadius: 22, padding: "26px 26px 28px", boxShadow: "0 14px 40px -28px #0f172a55" }}>
+      <div style={{ maxWidth: 760, margin: "0 auto", background: C.card, border: `1px solid ${C.line}`, borderRadius: 22, padding: "26px 26px 28px", boxShadow: "0 14px 40px -28px #0f172a55" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
           <button onClick={back} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", cursor: "pointer", color: C.mut, fontSize: 14, fontWeight: 600 }}>
             <ArrowLeft size={16} /> Назад
@@ -89,7 +89,7 @@ export default function Test() {
           {q.options.map((opt, i) => (
             <button key={i} onClick={() => answer(i)}
               style={{ textAlign: "left", padding: "15px 16px", borderRadius: 14, border: `1.5px solid ${C.line}`,
-                background: "#fff", cursor: "pointer", fontSize: 15.5, fontWeight: 500, color: C.ink, transition: "all .12s",
+                background: C.card, cursor: "pointer", fontSize: 15.5, fontWeight: 500, color: C.ink, transition: "all .12s",
                 display: "flex", alignItems: "center", gap: 11 }}
               onMouseEnter={(e) => { e.currentTarget.style.borderColor = subject.accent; e.currentTarget.style.background = subject.bg; }}
               onMouseLeave={(e) => { e.currentTarget.style.borderColor = C.line; e.currentTarget.style.background = "#fff"; }}>

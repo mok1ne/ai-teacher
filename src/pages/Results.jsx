@@ -23,7 +23,7 @@ export default function Results() {
       <ExamBlock subjectKey={results.subjectKey} />
       <div className="res-2col" style={{ display: "grid", gridTemplateColumns: "360px 1fr", gap: 24, alignItems: "start" }}>
         {/* score card */}
-        <div style={{ textAlign: "center", background: "#fff", border: `1px solid ${C.line}`, borderRadius: 22, padding: "28px 22px", boxShadow: "0 14px 40px -28px #0f172a66" }}>
+        <div style={{ textAlign: "center", background: C.card, border: `1px solid ${C.line}`, borderRadius: 22, padding: "28px 22px", boxShadow: "0 14px 40px -28px #0f172a66" }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: C.soft, textTransform: "uppercase", letterSpacing: ".05em", marginBottom: 14 }}>Прогноз · {subject.name} · {subject.level}</div>
           <ScoreView sc={sc} />
           <p style={{ fontSize: 14.5, color: C.mut, margin: "14px 0 18px" }}>
@@ -46,7 +46,7 @@ export default function Results() {
               <div style={{ display: "grid", gap: 10 }}>
                 {weak.map((t, i) => (
                   <div key={t} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
-                    background: "#fff", border: `1.5px solid ${i === 0 ? C.purple + "55" : C.line}`, borderRadius: 14, padding: "14px 16px" }}>
+                    background: C.card, border: `1.5px solid ${i === 0 ? C.purple + "55" : C.line}`, borderRadius: 14, padding: "14px 16px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
                       <span style={{ width: 30, height: 30, borderRadius: 9, background: C.lavBg, color: C.purple, display: "grid", placeItems: "center", flexShrink: 0 }}>
                         <Brain size={16} />
