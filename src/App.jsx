@@ -1,6 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
+import { AuthProvider, useAuth } from "./context/AuthContext";
 import { AppProvider } from "./context/AppContext";
 import { store } from "./lib/storage";
 import { daysUntil, pluralDays } from "./lib/date";
@@ -77,12 +77,41 @@ function Layout() {
   );
 }
 
+function LevelNoticeModal() {
+  const { user, level } = useAuth();
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    if (!user) return;
+    const key = "vs_level_notice:" + user.id;
+    try { if (!localStorage.getItem(key)) setShow(true); } catch { /* ignore */ }
+  }, [user]);
+  if (!show || !user) return null;
+  const close = () => { try { localStorage.setItem("vs_level_notice:" + user.id, "1"); } catch { /* ignore */ } setShow(false); };
+  const levelName = (level || "ege") === "oge" ? "ОГЭ" : "ЕГЭ";
+  return (
+    <div onClick={close} style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(11,16,32,.5)", backdropFilter: "blur(3px)", display: "grid", placeItems: "center", padding: 20 }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ background: "#fff", borderRadius: 22, padding: 28, maxWidth: 420, width: "100%", boxShadow: "0 30px 80px -30px rgba(11,16,32,.6)", textAlign: "center" }}>
+        <div style={{ fontSize: 40, marginBottom: 8 }}>🎯</div>
+        <h3 style={{ fontSize: 21, fontWeight: 800, margin: "0 0 8px" }}>Готовим вас к {levelName}</h3>
+        <p style={{ fontSize: 15, color: "#5b667a", margin: "0 0 20px", lineHeight: 1.5 }}>
+          Тесты и предметы подобраны под {levelName}. Уровень можно поменять в любой момент в <b>Настройках</b>.
+        </p>
+        <button onClick={close} style={{ width: "100%", padding: "13px", borderRadius: 12, border: 0, cursor: "pointer",
+          background: "linear-gradient(120deg,#3b5bff,#7c3aed)", color: "#fff", fontWeight: 700, fontSize: 15, fontFamily: "inherit" }}>
+          Понятно
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <AppProvider>
           <Layout />
+          <LevelNoticeModal />
         </AppProvider>
       </AuthProvider>
     </BrowserRouter>

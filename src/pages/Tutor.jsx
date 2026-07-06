@@ -126,7 +126,7 @@ export default function Tutor() {
             )}
             {limitReached && visible.length === 0 && !busy && (
               <div style={{ alignSelf: "center", textAlign: "center", maxWidth: 380, color: C.mut, fontSize: 14, marginTop: 20 }}>
-                На сегодня бесплатные сообщения закончились. Возвращайтесь завтра или откройте безлимит.
+                На этой неделе бесплатные сообщения закончились. Лимит обновится на следующей неделе — или откройте безлимит.
               </div>
             )}
           </div>
@@ -157,7 +157,7 @@ export default function Tutor() {
               ) : (
                 <>
                   <div style={{ flex: 1, minWidth: 200, fontSize: 13.5, color: C.sub }}>
-                    Дневной лимит тарифа исчерпан ({limit} сообщений). Откройте безлимит, чтобы продолжить.
+                    Недельный лимит тарифа исчерпан ({limit} сообщений). Откройте безлимит, чтобы продолжить.
                   </div>
                   <Button size="sm" color={C.purple} onClick={() => navigate("/parent")}>Открыть безлимит</Button>
                 </>
@@ -167,7 +167,7 @@ export default function Tutor() {
             <>
               {!unlimited && (
                 <div style={{ fontSize: 12, color: C.soft, marginBottom: 6, textAlign: "right" }}>
-                  Осталось {remaining} из {limit} сообщений сегодня{!user ? " · войдите, чтобы получить больше" : ""}
+                  Осталось {remaining} из {limit} сообщений на этой неделе{!user ? " · войдите, чтобы получить больше" : ""}
                 </div>
               )}
               <div style={{ display: "flex", gap: 10, alignItems: "flex-end" }}>

@@ -1,9 +1,22 @@
 import { useState } from "react";
 import { useNavigate, Navigate } from "react-router-dom";
-import { User, Lock, ShieldCheck, ArrowLeft, Check } from "lucide-react";
+import { User, Lock, ShieldCheck, ArrowLeft, Check, Phone, GraduationCap } from "lucide-react";
 import Button from "../components/ui/Button";
 import { useAuth } from "../context/AuthContext";
 import { C } from "../theme";
+
+function formatPhone(v) {
+  let d = String(v || "").replace(/\D/g, "");
+  if (d.startsWith("8")) d = "7" + d.slice(1);
+  if (d.startsWith("7")) d = d.slice(1);
+  d = d.slice(0, 10);
+  let out = "+7";
+  if (d.length) out += " " + d.slice(0, 3);
+  if (d.length > 3) out += " " + d.slice(3, 6);
+  if (d.length > 6) out += "-" + d.slice(6, 8);
+  if (d.length > 8) out += "-" + d.slice(8, 10);
+  return out;
+}
 
 function Card({ icon: Icon, title, desc, children }) {
   return (
@@ -23,12 +36,16 @@ const inputStyle = { width: "100%", boxSizing: "border-box", border: `1.5px soli
 
 export default function Settings() {
   const navigate = useNavigate();
-  const { user, loading, updateName, changePassword, setTwoFactor, isEmailUser } = useAuth();
+  const { user, loading, updateName, changePassword, setTwoFactor, isEmailUser, addPhone, updateLevel } = useAuth();
 
   const [name, setName] = useState(user?.name || "");
   const [nameMsg, setNameMsg] = useState("");
   const [oldPw, setOldPw] = useState(""); const [newPw, setNewPw] = useState("");
   const [pwMsg, setPwMsg] = useState(""); const [pwErr, setPwErr] = useState("");
+  const [level, setLevel] = useState(user?.level || "ege");
+  const [levelMsg, setLevelMsg] = useState("");
+  const [phone, setPhone] = useState(user?.phone ? formatPhone(user.phone) : "");
+  const [phoneMsg, setPhoneMsg] = useState(""); const [phoneErr, setPhoneErr] = useState("");
 
   if (loading) return null;
   if (!user) return <Navigate to="/login?next=/settings" replace />;
@@ -50,6 +67,19 @@ export default function Settings() {
     }
   };
   const toggle2fa = async () => { try { await setTwoFactor(!user.twofa); } catch { /* ignore */ } };
+  const saveLevel = async (lv) => {
+    setLevel(lv);
+    try { await updateLevel(lv); setLevelMsg("Уровень обновлён"); setTimeout(() => setLevelMsg(""), 2500); } catch { /* ignore */ }
+  };
+  const savePhone = async () => {
+    setPhoneErr(""); setPhoneMsg("");
+    if (phone.replace(/\D/g, "").length < 11) return setPhoneErr("Введите номер полностью");
+    try { await addPhone(phone); setPhoneMsg("Номер привязан — теперь можно входить по нему"); setTimeout(() => setPhoneMsg(""), 3000); }
+    catch (e) {
+      setPhoneErr(e.message === "phone_taken" ? "Этот номер уже привязан к другому аккаунту" :
+        e.message === "network" ? "Сервер недоступен" : "Не удалось привязать номер");
+    }
+  };
 
   return (
     <main className="page" style={{ maxWidth: 620, margin: "0 auto", padding: "30px 20px 60px" }}>
@@ -64,6 +94,29 @@ export default function Settings() {
           <Button onClick={saveName}>Сохранить имя</Button>
           {nameMsg && <span style={{ fontSize: 13, color: C.greenDk, display: "flex", alignItems: "center", gap: 4 }}><Check size={14} /> {nameMsg}</span>}
         </div>
+      </Card>
+
+      <Card icon={GraduationCap} title="Уровень подготовки" desc="Влияет на тесты и предметы, которые вам показываются.">
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          {[["ege", "ЕГЭ", "11 класс"], ["oge", "ОГЭ", "9 класс"]].map(([v, t, sub]) => (
+            <button key={v} type="button" onClick={() => saveLevel(v)}
+              style={{ padding: "14px", borderRadius: 13, cursor: "pointer", textAlign: "left", fontFamily: "inherit",
+                border: `2px solid ${level === v ? C.purple : C.line}`, background: level === v ? C.lavBg : "#fff" }}>
+              <div style={{ fontSize: 17, fontWeight: 800, color: level === v ? C.purple : C.ink }}>{t}</div>
+              <div style={{ fontSize: 12, color: C.mut }}>{sub}</div>
+            </button>
+          ))}
+        </div>
+        {levelMsg && <div style={{ fontSize: 13, color: C.greenDk, marginTop: 10, display: "flex", alignItems: "center", gap: 4 }}><Check size={14} /> {levelMsg}</div>}
+      </Card>
+
+      <Card icon={Phone} title="Номер телефона" desc={user.phone ? "Номер привязан. По нему можно войти в этот аккаунт." : "Привяжите номер, чтобы входить по нему в этот же аккаунт."}>
+        <input style={inputStyle} type="tel" value={phone} onChange={(e) => setPhone(formatPhone(e.target.value))} placeholder="+7 900 000-00-00" />
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <Button onClick={savePhone}>{user.phone ? "Обновить номер" : "Привязать номер"}</Button>
+          {phoneMsg && <span style={{ fontSize: 13, color: C.greenDk, display: "flex", alignItems: "center", gap: 4 }}><Check size={14} /> {phoneMsg}</span>}
+        </div>
+        {phoneErr && <div style={{ fontSize: 13, color: "#B91C1C", marginTop: 10 }}>{phoneErr}</div>}
       </Card>
 
       <Card icon={Lock} title="Смена пароля" desc={isEmailUser ? "Введите текущий и новый пароль." : "Доступно только для аккаунтов с входом по почте (у вас вход через VK)."}>

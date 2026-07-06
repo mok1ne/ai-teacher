@@ -65,3 +65,9 @@ input:-webkit-autofill:active {
   box-shadow: none !important;
   caret-color: #0b1020;
 }
+
+/* iOS: если у инпута шрифт < 16px, Safari приближает экран при фокусе.
+   Держим 16px на мобильных — приближения не происходит, экран не «дёргается». */
+@media (max-width: 760px) {
+  input, textarea, select { font-size: 16px !important; }
+}

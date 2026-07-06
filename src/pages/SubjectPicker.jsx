@@ -1,22 +1,20 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { subjectsForLevel } from "../data/subjects";
-import { LevelTabs } from "../components/Pieces";
+import { useAuth } from "../context/AuthContext";
 import { C } from "../theme";
 
 export default function SubjectPicker() {
   const navigate = useNavigate();
-  const [level, setLevel] = useState("ege");
-  const items = subjectsForLevel(level);
+  const { level } = useAuth();
+  const items = subjectsForLevel(level || "ege");
+  const levelName = (level || "ege") === "oge" ? "ОГЭ" : "ЕГЭ";
 
   return (
     <main className="page" style={{ maxWidth: 1300, margin: "0 auto", padding: "44px 20px" }}>
       <h1 style={{ fontSize: 30, fontWeight: 800, margin: "0 0 6px" }}>Выберите предмет для диагностики</h1>
-      <p style={{ fontSize: 15.5, color: C.mut, margin: "0 0 18px" }}>Короткий тест покажет ваш прогноз балла и слабые темы. Без регистрации.</p>
-
-      <div style={{ marginBottom: 22 }}>
-        <LevelTabs value={level} onChange={setLevel} />
-      </div>
+      <p style={{ fontSize: 15.5, color: C.mut, margin: "0 0 22px" }}>
+        Подготовка к {levelName}. Короткий тест покажет ваш прогноз балла и слабые темы. Уровень можно изменить в настройках.
+      </p>
 
       <div className="cards-2" style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 14 }}>
         {items.map(([key, s]) => (

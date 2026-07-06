@@ -44,26 +44,27 @@ export function AuthProvider({ children }) {
   const localSession = (acc) => {
     const token = "demo." + btoa(unescape(encodeURIComponent(acc.id))).slice(0, 40);
     setToken(token);
-    const u = { id: acc.id, email: acc.email || null, phone: acc.phone || null, name: acc.name, age: acc.age, plan: "free", twofa: !!acc.twofa, provider: acc.provider };
+    const u = { id: acc.id, email: acc.email || null, phone: acc.phone || null, name: acc.name, age: acc.age, plan: "free", twofa: !!acc.twofa, provider: acc.provider, level: acc.level || "ege" };
     setUser(u); cacheProfile(u); return u;
   };
 
   // --- Регистрация по e-mail ---
-  async function registerEmail(email, password, name, age) {
+  async function registerEmail(email, password, name, age, level) {
     if (!validEmail(email)) throw new Error("invalid_email");
     if ((password || "").length < 6) throw new Error("weak_password");
     const id = emailId(email);
     const mail = email.trim().toLowerCase();
+    const lv = level === "oge" ? "oge" : "ege";
     try {
-      const d = await api("/api/auth?action=register", { method: "POST", body: { email: mail, password, name, age } });
-      accounts.create({ id, provider: "email", email: mail, name, age, pw: scramble(password) });
+      const d = await api("/api/auth?action=register", { method: "POST", body: { email: mail, password, name, age, level: lv } });
+      accounts.create({ id, provider: "email", email: mail, name, age, level: lv, pw: scramble(password) });
       return applyServer(d);
     } catch (e) {
       if (e.message === "network" || e.message === "request_failed") {
         if (accounts.exists(id)) throw new Error("exists");
-        return localSession(accounts.create({ id, provider: "email", email: mail, name, age, pw: scramble(password) }));
+        return localSession(accounts.create({ id, provider: "email", email: mail, name, age, level: lv, pw: scramble(password) }));
       }
-      throw e; // exists / invalid_age и т.п.
+      throw e;
     }
   }
 
@@ -132,15 +133,27 @@ export function AuthProvider({ children }) {
     // прод: отправить СМС с кодом через российского провайдера. В демо — любой код 0000–9999.
     return true;
   }
-  async function phoneAuth(phone, code, name, age) {
+  async function phoneAuth(phone, code, name, age, level) {
     if (!validPhone(phone)) throw new Error("invalid_phone");
     if (!/^\d{4}$/.test(String(code || ""))) throw new Error("bad_code");
+    const p = normalizePhone(phone);
     const id = phoneId(phone);
-    if (accounts.exists(id)) return localSession(accounts.get(id));
-    if (!name || !name.trim()) throw new Error("needs_profile");
-    const a = parseInt(age, 10);
-    if (!a || a < 7 || a > 100) throw new Error("invalid_age");
-    return localSession(accounts.create({ id, provider: "phone", phone: normalizePhone(phone), name: name.trim(), age: a }));
+    const lv = level === "oge" ? "oge" : "ege";
+    try {
+      const d = await api("/api/auth?action=phone", { method: "POST", body: { phone: p, code, name, age, level: lv } });
+      if (d.needsProfile) throw new Error("needs_profile"); // новый номер — нужны имя и возраст
+      accounts.create({ id, provider: "phone", phone: p, name: d.user.name, age: d.user.age, level: d.user.level }); // зеркалим локально
+      return applyServer(d);
+    } catch (e) {
+      if (e.message === "needs_profile") throw e;
+      if (e.message !== "network" && e.message !== "request_failed") throw e;
+      // локальный фолбэк
+      if (accounts.exists(id)) return localSession(accounts.get(id));
+      if (!name || !name.trim()) throw new Error("needs_profile");
+      const a = parseInt(age, 10);
+      if (!a || a < 7 || a > 100) throw new Error("invalid_age");
+      return localSession(accounts.create({ id, provider: "phone", phone: p, name: name.trim(), age: a, level: lv }));
+    }
   }
 
   // --- VK ID ---
@@ -180,16 +193,31 @@ export function AuthProvider({ children }) {
     try { await api("/api/account?action=twofa", { method: "POST", auth: true, body: { enabled } }); } catch { /* локально ок */ }
     const u = { ...user, twofa: !!enabled }; setUser(u); cacheProfile(u);
   }
+  // Привязать телефон к текущему аккаунту (потом можно входить по нему в тот же акк)
+  async function addPhone(phone) {
+    if (!validPhone(phone)) throw new Error("invalid_phone");
+    const p = normalizePhone(phone);
+    const d = await api("/api/account?action=phone", { method: "POST", auth: true, body: { phone: p } });
+    if (accounts.exists(user.id)) accounts.update(user.id, { phone: p });
+    const u = d.user || { ...user, phone: p }; setUser(u); cacheProfile(u); return u;
+  }
+  // Сменить уровень подготовки (ЕГЭ/ОГЭ)
+  async function updateLevel(level) {
+    const lv = level === "oge" ? "oge" : "ege";
+    if (accounts.exists(user.id)) accounts.update(user.id, { level: lv });
+    try { await api("/api/account?action=level", { method: "POST", auth: true, body: { level: lv } }); } catch { /* локально ок */ }
+    const u = { ...user, level: lv }; setUser(u); cacheProfile(u);
+  }
 
   function logout() { setToken(null); cacheProfile(null); setUser(null); }
 
   return (
     <AuthContext.Provider value={{
-      user, loading,
+      user, loading, level: user?.level || "ege",
       registerEmail, loginEmail, requestResetCode, resetPasswordWithCode,
       phoneExists, requestPhoneCode, phoneAuth,
       loginVK, completeVK, logout,
-      updateName, changePassword, setTwoFactor,
+      updateName, changePassword, setTwoFactor, addPhone, updateLevel,
       isEmailUser: user?.provider === "email",
     }}>
       {children}

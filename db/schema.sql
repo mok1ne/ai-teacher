@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
   plan          TEXT NOT NULL DEFAULT 'free',
   twofa         BOOLEAN NOT NULL DEFAULT FALSE,
   provider      TEXT NOT NULL,              -- email | phone | vk
+  level         TEXT NOT NULL DEFAULT 'ege', -- ege | oge
   password_hash TEXT,                       -- scrypt (соль:хэш); пароль не хранится
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -27,3 +28,6 @@ CREATE TABLE IF NOT EXISTS progress (
   exam_dates JSONB NOT NULL DEFAULT '{}',
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Если таблица users уже создана ранее — добавьте колонку:
+-- ALTER TABLE users ADD COLUMN IF NOT EXISTS level TEXT NOT NULL DEFAULT 'ege';

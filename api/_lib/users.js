@@ -4,7 +4,7 @@ const mem = new Map(); // fallback для разработки без БД
 
 const toUser = (r) => r && ({
   id: r.id, email: r.email, phone: r.phone, name: r.name, age: r.age,
-  plan: r.plan, twofa: r.twofa, provider: r.provider,
+  plan: r.plan, twofa: r.twofa, provider: r.provider, level: r.level || "ege",
   passwordHash: r.password_hash, createdAt: r.created_at,
 });
 
@@ -30,9 +30,9 @@ export async function getUserByPhone(phone) {
 export async function createUser(u) {
   if (!useDb) { mem.set(u.id, u); return u; }
   await sql`
-    INSERT INTO users (id, email, phone, name, age, plan, twofa, provider, password_hash)
+    INSERT INTO users (id, email, phone, name, age, plan, twofa, provider, level, password_hash)
     VALUES (${u.id}, ${u.email || null}, ${u.phone || null}, ${u.name}, ${u.age || null},
-            ${u.plan || "free"}, ${u.twofa || false}, ${u.provider}, ${u.passwordHash || null})`;
+            ${u.plan || "free"}, ${u.twofa || false}, ${u.provider}, ${u.level || "ege"}, ${u.passwordHash || null})`;
   return u;
 }
 export async function patchUserById(id, patch) {
@@ -42,14 +42,14 @@ export async function patchUserById(id, patch) {
   if (!useDb) { mem.set(id, n); return n; }
   await sql`
     UPDATE users SET name = ${n.name}, age = ${n.age || null}, plan = ${n.plan},
-      twofa = ${n.twofa}, password_hash = ${n.passwordHash || null}
+      twofa = ${n.twofa}, phone = ${n.phone || null}, level = ${n.level || "ege"},
+      password_hash = ${n.passwordHash || null}
     WHERE id = ${id}`;
   return n;
 }
-// upsert для VK (не затираем план/2FA существующего)
 export async function upsertUser(base) {
   const existing = await getUserById(base.id);
-  const u = { plan: "free", twofa: false, ...existing, ...base };
+  const u = { plan: "free", twofa: false, level: "ege", ...existing, ...base };
   if (existing) return patchUserById(u.id, u);
   return createUser(u);
 }

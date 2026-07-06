@@ -30,6 +30,21 @@ function Field({ icon: Icon, ...props }) {
 }
 const submitBtn = { width: "100%", justifyContent: "center", padding: "13px" };
 
+function LevelChoice({ value, onChange }) {
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+      {[["ege", "ЕГЭ", "11 класс"], ["oge", "ОГЭ", "9 класс"]].map(([v, t, s]) => (
+        <button key={v} type="button" onClick={() => onChange(v)}
+          style={{ padding: "16px", borderRadius: 14, cursor: "pointer", textAlign: "left", transition: "all .15s",
+            border: `2px solid ${value === v ? C.purple : C.line}`, background: value === v ? C.lavBg : "#fff", fontFamily: "inherit" }}>
+          <div style={{ fontSize: 18, fontWeight: 800, color: value === v ? C.purple : C.ink }}>{t}</div>
+          <div style={{ fontSize: 12.5, color: C.mut }}>{s}</div>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 // Всегда приводим ввод к формату +7 XXX XXX-XX-XX. Если начинают не с 7/8 —
 // +7 подставляется автоматически (910… → +7 910…); «8…» → +7…
 function formatPhone(v) {
@@ -65,6 +80,7 @@ export default function Login() {
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
   const [phone, setPhone] = useState("");
+  const [level, setLevel] = useState("ege");
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
@@ -89,13 +105,18 @@ export default function Login() {
     if (password !== password2) return setErr(MSG.password_mismatch);
     setStep(2);
   };
-  const doRegister = async () => {
+  const nextToLevel = () => {
     resetState();
     if (!name.trim()) return setErr(MSG.empty_name);
     const a = parseInt(age, 10);
     if (!a || a < 7 || a > 100) return setErr(MSG.invalid_age);
+    setStep(3);
+  };
+  const doRegister = async () => {
+    resetState();
+    const a = parseInt(age, 10);
     setBusy(true);
-    try { await registerEmail(email.trim(), password, name.trim(), a); navigate(next); }
+    try { await registerEmail(email.trim(), password, name.trim(), a, level); navigate(next); }
     catch (e) { fail(e); if (e.message === "exists") { setMode("login"); } setStep(1); }
     finally { setBusy(false); }
   };
@@ -129,10 +150,10 @@ export default function Login() {
   const submitCode = async () => {
     resetState();
     if (!/^\d{4}$/.test(code)) return setErr(MSG.bad_code);
-    if (!phoneExists(phone)) { setPhoneStep("profile"); return; } // новый пользователь — попросим имя и возраст
     setBusy(true);
     try { await phoneAuth(phone, code); navigate(next); }
-    catch (e) { fail(e); } finally { setBusy(false); }
+    catch (e) { if (e.message === "needs_profile") setPhoneStep("profile"); else fail(e); }
+    finally { setBusy(false); }
   };
   const submitPhoneProfile = async () => {
     resetState();
@@ -140,7 +161,7 @@ export default function Login() {
     const a = parseInt(age, 10);
     if (!a || a < 7 || a > 100) return setErr(MSG.invalid_age);
     setBusy(true);
-    try { await phoneAuth(phone, code, name.trim(), a); navigate(next); }
+    try { await phoneAuth(phone, code, name.trim(), a, level); navigate(next); }
     catch (e) { fail(e); } finally { setBusy(false); }
   };
 
@@ -199,11 +220,20 @@ export default function Login() {
             )}
             {mode === "register" && step === 2 && (
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                <div style={{ fontSize: 13.5, color: C.mut, marginBottom: 2 }}>Последний шаг — расскажите о себе:</div>
+                <div style={{ fontSize: 13.5, color: C.mut, marginBottom: 2 }}>Расскажите о себе:</div>
                 <Field icon={User} type="text" value={name} placeholder="Имя" autoComplete="given-name" onChange={(e) => setName(e.target.value)} />
-                <Field icon={Calendar} type="number" value={age} placeholder="Возраст" min="7" max="100" onChange={(e) => setAge(e.target.value)} onKeyDown={(e) => e.key === "Enter" && doRegister()} />
-                <Button onClick={doRegister} disabled={busy} style={submitBtn}>{busy ? "Создаём…" : "Создать аккаунт"}</Button>
+                <Field icon={Calendar} type="number" value={age} placeholder="Возраст" min="7" max="100" onChange={(e) => setAge(e.target.value)} onKeyDown={(e) => e.key === "Enter" && nextToLevel()} />
+                <Button onClick={nextToLevel} style={submitBtn}>Далее <ArrowRight size={16} /></Button>
                 <button onClick={() => { setStep(1); resetState(); }} style={{ background: "none", border: "none", cursor: "pointer", color: C.soft, fontSize: 13, fontFamily: "inherit" }}>← Назад</button>
+              </div>
+            )}
+            {mode === "register" && step === 3 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                <div style={{ fontSize: 15, fontWeight: 700 }}>К какому экзамену готовитесь?</div>
+                <LevelChoice value={level} onChange={setLevel} />
+                <div style={{ fontSize: 12, color: C.soft }}>Это можно изменить потом в настройках.</div>
+                <Button onClick={doRegister} disabled={busy} style={submitBtn}>{busy ? "Создаём…" : "Создать аккаунт"}</Button>
+                <button onClick={() => { setStep(2); resetState(); }} style={{ background: "none", border: "none", cursor: "pointer", color: C.soft, fontSize: 13, fontFamily: "inherit" }}>← Назад</button>
               </div>
             )}
           </>
@@ -256,7 +286,9 @@ export default function Login() {
               <>
                 <div style={{ fontSize: 13.5, color: C.mut }}>Вы впервые — расскажите о себе:</div>
                 <Field icon={User} type="text" value={name} placeholder="Имя" onChange={(e) => setName(e.target.value)} />
-                <Field icon={Calendar} type="number" value={age} placeholder="Возраст" min="7" max="100" onChange={(e) => setAge(e.target.value)} onKeyDown={(e) => e.key === "Enter" && submitPhoneProfile()} />
+                <Field icon={Calendar} type="number" value={age} placeholder="Возраст" min="7" max="100" onChange={(e) => setAge(e.target.value)} />
+                <div style={{ fontSize: 13.5, fontWeight: 600, marginTop: 2 }}>Какой экзамен?</div>
+                <LevelChoice value={level} onChange={setLevel} />
                 <Button onClick={submitPhoneProfile} disabled={busy} style={submitBtn}>{busy ? "Создаём…" : "Создать аккаунт"}</Button>
               </>
             )}

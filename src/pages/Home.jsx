@@ -6,15 +6,16 @@ import {
 } from "lucide-react";
 import Button from "../components/ui/Button";
 import HeroArt from "../components/HeroArt";
-import { Pill, SectionHead, LevelTabs } from "../components/Pieces";
+import { Pill, SectionHead } from "../components/Pieces";
 import { SUBJECTS, subjectsForLevel } from "../data/subjects";
 import { useApp } from "../context/AppContext";
+import { useAuth } from "../context/AuthContext";
 import { C } from "../theme";
 
 export default function Home() {
   const navigate = useNavigate();
   const { setTutorTarget } = useApp();
-  const [level, setLevel] = useState("ege");
+  const { level } = useAuth();
   const openChat = () => { setTutorTarget(null); navigate("/chat"); };
 
   return (
@@ -27,7 +28,7 @@ export default function Home() {
               Подготовка к <span style={{ color: C.blue }}>ОГЭ</span> и <span style={{ color: C.purple }}>ЕГЭ</span>
             </h1>
             <p className="hero-sub" style={{ fontSize: 21, color: C.sub, marginTop: 14, lineHeight: 1.4, fontWeight: 500 }}>
-              Уверенность сегодня — успех завтра!
+              Не просто чат с ИИ — наставник, который видит твои пробелы и ведёт от первой ошибки до высокого балла.
             </p>
             <div className="pills" style={{ display: "flex", gap: 26, flexWrap: "wrap", margin: "26px 0 30px" }}>
               <Pill Icon={BookOpen} title={"Понятные\nобъяснения"} color={C.blue} bg={C.blueBg} />
@@ -41,7 +42,7 @@ export default function Home() {
               </Button>
             </div>
             <p style={{ fontSize: 13, color: C.soft, marginTop: 14, display: "flex", alignItems: "center", gap: 6 }}>
-              <ShieldCheck size={15} /> Бесплатно и без регистрации — просто начните тест
+              <ShieldCheck size={15} /> Бесплатно по регистрации — 10 запросов к ИИ в неделю
             </p>
           </div>
           <HeroArt />
@@ -91,10 +92,9 @@ export default function Home() {
       <section className="page" style={{ maxWidth: 1300, margin: "0 auto", padding: "30px 22px 10px" }}>
         <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
           <SectionHead eyebrow="Предметы" title="Учись эффективно. Сдавай уверенно." />
-          <div style={{ marginBottom: 20 }}><LevelTabs value={level} onChange={setLevel} /></div>
         </div>
         <div className="cards-3" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16 }}>
-          {subjectsForLevel(level).map(([key, s]) => (
+          {subjectsForLevel(level || "ege").map(([key, s]) => (
             <div key={key} onClick={() => s.available && navigate(`/test/${key}`)}
               style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 18, padding: 20,
                 cursor: s.available ? "pointer" : "default", opacity: s.available ? 1 : 0.62,

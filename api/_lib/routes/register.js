@@ -4,7 +4,7 @@ import { getUserByEmail, createUser, publicUser } from "../users.js";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "method_not_allowed" });
-  const { email, password, name, age } = req.body || {};
+  const { email, password, name, age, level } = req.body || {};
   const mail = String(email || "").trim().toLowerCase();
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) return res.status(400).json({ error: "invalid_email" });
@@ -17,7 +17,7 @@ export default async function handler(req, res) {
 
   const user = {
     id: "email:" + mail, email: mail, name: String(name).trim(), age: a,
-    plan: "free", twofa: false, provider: "email",
+    plan: "free", twofa: false, provider: "email", level: level === "oge" ? "oge" : "ege",
     passwordHash: hashPassword(password), createdAt: Date.now(),
   };
   await createUser(user);
