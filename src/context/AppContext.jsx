@@ -11,7 +11,8 @@ const AppContext = createContext(null);
    - без аккаунта → только текущая сессия (sessionStorage);
    - при входе/выходе анонимные результаты очищаются. */
 const BASES = ["vs_results", "vs_studied", "vs_examDates", "vs_lastSubject"];
-const storageFor = (uid) => (uid === "anon" ? window.sessionStorage : window.localStorage);
+const safeStore = (name) => { try { return window[name] || null; } catch { return null; } };
+const storageFor = (uid) => safeStore(uid === "anon" ? "sessionStorage" : "localStorage");
 const nsKey = (base, uid) => `${base}:${uid}`;
 const isDemo = () => { const t = getToken(); return !!t && t.startsWith("demo."); };
 const isServerUser = (uid) => uid !== "anon" && !isDemo();
@@ -25,11 +26,11 @@ const weekKey = () => {
 
 function loadFor(uid) {
   const s = storageFor(uid);
-  const get = (base, def) => { try { const v = s.getItem(nsKey(base, uid)); return v == null ? def : JSON.parse(v); } catch { return def; } };
+  const get = (base, def) => { if (!s) return def; try { const v = s.getItem(nsKey(base, uid)); return v == null ? def : JSON.parse(v); } catch { return def; } };
   return { results: get("vs_results", {}), studied: get("vs_studied", {}), examDates: get("vs_examDates", {}), lastSubject: get("vs_lastSubject", null) };
 }
-function clearAnon() { try { BASES.forEach((b) => window.sessionStorage.removeItem(nsKey(b, "anon"))); } catch { /* ignore */ } }
-function clearLegacy() { try { BASES.forEach((b) => window.localStorage.removeItem(b)); } catch { /* ignore */ } }
+function clearAnon() { try { const s = safeStore("sessionStorage"); if (s) BASES.forEach((b) => s.removeItem(nsKey(b, "anon"))); } catch { /* ignore */ } }
+function clearLegacy() { try { const s = safeStore("localStorage"); if (s) BASES.forEach((b) => s.removeItem(b)); } catch { /* ignore */ } }
 
 export function AppProvider({ children }) {
   const { user, loading: authLoading } = useAuth();
@@ -76,7 +77,7 @@ export function AppProvider({ children }) {
     }
   }, [uid, authLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const persist = (base, val) => { try { storageFor(uidRef.current).setItem(nsKey(base, uidRef.current), JSON.stringify(val)); } catch { /* ignore */ } };
+  const persist = (base, val) => { const s = storageFor(uidRef.current); if (!s) return; try { s.setItem(nsKey(base, uidRef.current), JSON.stringify(val)); } catch { /* ignore */ } };
   function pushProgress(res, stu, exd) {
     if (!isServerUser(uidRef.current)) return; // сервер только для реальных аккаунтов
     fetch("/api/progress", { method: "POST", headers: { ...authHeaders(), "Content-Type": "application/json" },
