@@ -4,7 +4,7 @@ import { Mail, ArrowRight, ShieldCheck, Lock, User, Calendar, Phone } from "luci
 import Button from "../components/ui/Button";
 import Logo from "../components/Logo";
 import { useAuth } from "../context/AuthContext";
-import { C } from "../theme";
+import "./Login.scss";
 
 const MSG = {
   invalid_email: "Введите корректную почту.",
@@ -22,9 +22,9 @@ const MSG = {
 
 function Field({ icon: Icon, ...props }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 10, border: `1.5px solid ${C.line}`, borderRadius: 12, padding: "11px 14px" }}>
-      <Icon size={18} style={{ color: C.soft }} />
-      <input {...props} style={{ flex: 1, border: "none", outline: "none", fontSize: 15, fontFamily: "inherit", color: C.ink, background: "transparent" }} />
+    <div className="field">
+      <Icon size={18} className="field__icon" />
+      <input {...props} className="field__input" />
     </div>
   );
 }
@@ -32,21 +32,18 @@ const submitBtn = { width: "100%", justifyContent: "center", padding: "13px" };
 
 function LevelChoice({ value, onChange }) {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+    <div className="level-choice">
       {[["ege", "ЕГЭ", "11 класс"], ["oge", "ОГЭ", "9 класс"]].map(([v, t, s]) => (
-        <button key={v} type="button" onClick={() => onChange(v)}
-          style={{ padding: "16px", borderRadius: 14, cursor: "pointer", textAlign: "left", transition: "all .15s",
-            border: `2px solid ${value === v ? C.purple : C.line}`, background: value === v ? C.lavBg : C.card, fontFamily: "inherit" }}>
-          <div style={{ fontSize: 18, fontWeight: 800, color: value === v ? C.purple : C.ink }}>{t}</div>
-          <div style={{ fontSize: 12.5, color: C.mut }}>{s}</div>
+        <button key={v} type="button" onClick={() => onChange(v)} className={`level-choice__opt${value === v ? " level-choice__opt--active" : ""}`}>
+          <div className="level-choice__title">{t}</div>
+          <div className="level-choice__sub">{s}</div>
         </button>
       ))}
     </div>
   );
 }
 
-// Всегда приводим ввод к формату +7 XXX XXX-XX-XX. Если начинают не с 7/8 —
-// +7 подставляется автоматически (910… → +7 910…); «8…» → +7…
+// Всегда приводим ввод к формату +7 XXX XXX-XX-XX.
 function formatPhone(v) {
   let d = String(v || "").replace(/\D/g, "");
   if (d.startsWith("8")) d = "7" + d.slice(1);
@@ -64,15 +61,15 @@ export default function Login() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const next = params.get("next") || "/";
-  const { user, loading, loginEmail, registerEmail, requestResetCode, resetPasswordWithCode, phoneExists, requestPhoneCode, phoneAuth, loginVK } = useAuth();
+  const { user, loading, loginEmail, registerEmail, requestResetCode, resetPasswordWithCode, requestPhoneCode, phoneAuth, loginVK } = useAuth();
 
-  const [method, setMethod] = useState("email");   // email | phone
-  const [mode, setMode] = useState("login");        // login | register (для почты)
-  const [step, setStep] = useState(1);              // регистрация по почте
+  const [method, setMethod] = useState("email");
+  const [mode, setMode] = useState("login");
+  const [step, setStep] = useState(1);
   const [forgot, setForgot] = useState(false);
-  const [forgotStep, setForgotStep] = useState("request"); // request | code
+  const [forgotStep, setForgotStep] = useState("request");
   const [resetCode, setResetCode] = useState("");
-  const [phoneStep, setPhoneStep] = useState("phone"); // phone | code | profile
+  const [phoneStep, setPhoneStep] = useState("phone");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -91,13 +88,11 @@ export default function Login() {
   const fail = (e) => setErr(MSG[e?.message] || "Не удалось. Проверьте данные и попробуйте снова.");
   const resetState = () => { setErr(""); setInfo(""); };
 
-  // --- почта: вход ---
   const doLogin = async () => {
     setBusy(true); resetState();
     try { await loginEmail(email.trim(), password); navigate(next); }
     catch (e) { fail(e); } finally { setBusy(false); }
   };
-  // --- почта: регистрация ---
   const nextStep = () => {
     resetState();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return setErr(MSG.invalid_email);
@@ -120,17 +115,14 @@ export default function Login() {
     catch (e) { fail(e); if (e.message === "exists") { setMode("login"); } setStep(1); }
     finally { setBusy(false); }
   };
-  // --- почта: восстановление (шаг 1 — запрос кода) ---
   const doRequestCode = async () => {
-    resetState();
-    setBusy(true);
+    resetState(); setBusy(true);
     try {
       const { demoCode } = await requestResetCode(email.trim());
       setForgotStep("code");
       setInfo(demoCode ? `Демо: код отправлен бы на почту. Ваш код — ${demoCode}` : "Код отправлен на вашу почту.");
     } catch (e) { fail(e); } finally { setBusy(false); }
   };
-  // --- почта: восстановление (шаг 2 — код + новый пароль, затем автовход) ---
   const doResetCode = async () => {
     resetState();
     if (!/^\d{4}$/.test(resetCode)) return setErr(MSG.bad_code);
@@ -141,7 +133,6 @@ export default function Login() {
     catch (e) { fail(e); } finally { setBusy(false); }
   };
 
-  // --- телефон ---
   const sendCode = async () => {
     resetState(); setBusy(true);
     try { await requestPhoneCode(phone); setPhoneStep("code"); setInfo("Демо: введите любые 4 цифры как код из СМС."); }
@@ -169,49 +160,41 @@ export default function Login() {
   const switchMode = (m) => { setMode(m); setStep(1); setForgot(false); resetState(); setPassword(""); setPassword2(""); };
 
   return (
-    <main className="page" style={{ maxWidth: 460, margin: "0 auto", padding: "48px 20px" }}>
-      <div style={{ textAlign: "center", marginBottom: 20 }}>
-        <div style={{ margin: "0 auto 12px", width: 52 }}><Logo size={52} /></div>
-        <h1 style={{ fontSize: 25, fontWeight: 800, margin: "0 0 6px" }}>«Время сдавать»</h1>
-        <p style={{ fontSize: 14.5, color: C.mut, margin: 0 }}>Сохраняйте прогресс, занимайтесь с ИИ и оформляйте подписку.</p>
+    <main className="page login">
+      <div className="login__head">
+        <div className="login__logo"><Logo size={52} /></div>
+        <h1 className="login__title">«Время сдавать»</h1>
+        <p className="login__subtitle">Сохраняйте прогресс, занимайтесь с ИИ и оформляйте подписку.</p>
       </div>
 
-      {/* способ входа */}
-      <div style={{ display: "flex", background: C.track, borderRadius: 12, padding: 4, gap: 4, marginBottom: 14 }}>
+      <div className="login__tabs">
         {[["email", "Почта"], ["phone", "Телефон"]].map(([m, label]) => (
-          <button key={m} onClick={() => switchMethod(m)}
-            style={{ flex: 1, border: "none", cursor: "pointer", padding: "9px", borderRadius: 9, fontSize: 14.5, fontWeight: 700,
-              background: method === m ? C.card : "transparent", color: method === m ? C.purple : C.mut, boxShadow: method === m ? "0 2px 8px -4px #0f172a55" : "none" }}>
-            {label}
-          </button>
+          <button key={m} onClick={() => switchMethod(m)} className={`login__tab${method === m ? " login__tab--active" : ""}`}>{label}</button>
         ))}
       </div>
 
-      <div style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 20, padding: 24, boxShadow: "0 14px 40px -28px #0f172a55" }}>
-        {/* ===== ПОЧТА ===== */}
+      <div className="login__card">
         {method === "email" && !forgot && (
           <>
-            <div style={{ display: "flex", background: C.track, borderRadius: 10, padding: 3, gap: 3, marginBottom: 16 }}>
+            <div className="login__modes">
               {[["login", "Вход"], ["register", "Регистрация"]].map(([m, label]) => (
-                <button key={m} onClick={() => switchMode(m)}
-                  style={{ flex: 1, border: "none", cursor: "pointer", padding: "8px", borderRadius: 8, fontSize: 13.5, fontWeight: 700,
-                    background: mode === m ? C.card : "transparent", color: mode === m ? C.ink : C.soft }}>{label}</button>
+                <button key={m} onClick={() => switchMode(m)} className={`login__mode${mode === m ? " login__mode--active" : ""}`}>{label}</button>
               ))}
             </div>
 
             {mode === "login" && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <div className="login__form">
                 <Field icon={Mail} type="email" value={email} placeholder="you@example.com" autoComplete="email" onChange={(e) => setEmail(e.target.value)} />
                 <Field icon={Lock} type="password" value={password} placeholder="Пароль" autoComplete="current-password" onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === "Enter" && doLogin()} />
-                <div style={{ textAlign: "right" }}>
-                  <button onClick={() => { setForgot(true); setForgotStep("request"); setResetCode(""); resetState(); setPassword(""); setPassword2(""); }} style={{ background: "none", border: "none", cursor: "pointer", color: C.purple, fontSize: 13, fontFamily: "inherit" }}>Забыли пароль?</button>
+                <div className="login__forgot">
+                  <button onClick={() => { setForgot(true); setForgotStep("request"); setResetCode(""); resetState(); setPassword(""); setPassword2(""); }} className="login__forgot-link">Забыли пароль?</button>
                 </div>
                 <Button onClick={doLogin} disabled={busy} style={submitBtn}>{busy ? "Входим…" : "Войти"}</Button>
               </div>
             )}
 
             {mode === "register" && step === 1 && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <div className="login__form">
                 <Field icon={Mail} type="email" value={email} placeholder="you@example.com" autoComplete="email" onChange={(e) => setEmail(e.target.value)} />
                 <Field icon={Lock} type="password" value={password} placeholder="Пароль (от 6 символов)" autoComplete="new-password" onChange={(e) => setPassword(e.target.value)} />
                 <Field icon={Lock} type="password" value={password2} placeholder="Повторите пароль" autoComplete="new-password" onChange={(e) => setPassword2(e.target.value)} onKeyDown={(e) => e.key === "Enter" && nextStep()} />
@@ -219,56 +202,51 @@ export default function Login() {
               </div>
             )}
             {mode === "register" && step === 2 && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                <div style={{ fontSize: 13.5, color: C.mut, marginBottom: 2 }}>Расскажите о себе:</div>
+              <div className="login__form">
+                <div className="login__hint">Расскажите о себе:</div>
                 <Field icon={User} type="text" value={name} placeholder="Имя" autoComplete="given-name" onChange={(e) => setName(e.target.value)} />
                 <Field icon={Calendar} type="number" value={age} placeholder="Возраст" min="7" max="100" onChange={(e) => setAge(e.target.value)} onKeyDown={(e) => e.key === "Enter" && nextToLevel()} />
                 <Button onClick={nextToLevel} style={submitBtn}>Далее <ArrowRight size={16} /></Button>
-                <button onClick={() => { setStep(1); resetState(); }} style={{ background: "none", border: "none", cursor: "pointer", color: C.soft, fontSize: 13, fontFamily: "inherit" }}>← Назад</button>
+                <button onClick={() => { setStep(1); resetState(); }} className="login__link">← Назад</button>
               </div>
             )}
             {mode === "register" && step === 3 && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                <div style={{ fontSize: 15, fontWeight: 700 }}>К какому экзамену готовитесь?</div>
+              <div className="login__form" style={{ gap: 12 }}>
+                <div className="login__label">К какому экзамену готовитесь?</div>
                 <LevelChoice value={level} onChange={setLevel} />
-                <div style={{ fontSize: 12, color: C.soft }}>Это можно изменить потом в настройках.</div>
+                <div className="login__hint login__hint--sm">Это можно изменить потом в настройках.</div>
                 <Button onClick={doRegister} disabled={busy} style={submitBtn}>{busy ? "Создаём…" : "Создать аккаунт"}</Button>
-                <button onClick={() => { setStep(2); resetState(); }} style={{ background: "none", border: "none", cursor: "pointer", color: C.soft, fontSize: 13, fontFamily: "inherit" }}>← Назад</button>
+                <button onClick={() => { setStep(2); resetState(); }} className="login__link">← Назад</button>
               </div>
             )}
           </>
         )}
 
-        {/* ===== ВОССТАНОВЛЕНИЕ ПАРОЛЯ ===== */}
         {method === "email" && forgot && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <div style={{ fontSize: 14, fontWeight: 700 }}>Восстановление пароля</div>
-
+          <div className="login__form">
+            <div className="login__forgot-title">Восстановление пароля</div>
             {forgotStep === "request" && (
               <>
-                <div style={{ fontSize: 13, color: C.mut }}>Укажите почту аккаунта — пришлём код для смены пароля.</div>
+                <div className="login__hint">Укажите почту аккаунта — пришлём код для смены пароля.</div>
                 <Field icon={Mail} type="email" value={email} placeholder="Почта аккаунта" autoComplete="email" onChange={(e) => setEmail(e.target.value)} onKeyDown={(e) => e.key === "Enter" && doRequestCode()} />
                 <Button onClick={doRequestCode} disabled={busy} style={submitBtn}>{busy ? "Отправляем…" : "Отправить код"}</Button>
               </>
             )}
-
             {forgotStep === "code" && (
               <>
                 <Field icon={Lock} type="text" inputMode="numeric" maxLength={4} value={resetCode} placeholder="Код из письма (4 цифры)" onChange={(e) => setResetCode(e.target.value.replace(/\D/g, ""))} />
                 <Field icon={Lock} type="password" value={password} placeholder="Новый пароль (от 6 символов)" autoComplete="new-password" onChange={(e) => setPassword(e.target.value)} />
                 <Field icon={Lock} type="password" value={password2} placeholder="Повторите новый пароль" autoComplete="new-password" onChange={(e) => setPassword2(e.target.value)} onKeyDown={(e) => e.key === "Enter" && doResetCode()} />
                 <Button onClick={doResetCode} disabled={busy} style={submitBtn}>{busy ? "Меняем…" : "Сменить пароль и войти"}</Button>
-                <button onClick={() => { setForgotStep("request"); setResetCode(""); resetState(); }} style={{ background: "none", border: "none", cursor: "pointer", color: C.soft, fontSize: 13, fontFamily: "inherit" }}>← Изменить почту</button>
+                <button onClick={() => { setForgotStep("request"); setResetCode(""); resetState(); }} className="login__link">← Изменить почту</button>
               </>
             )}
-
-            <button onClick={() => { setForgot(false); setForgotStep("request"); setResetCode(""); resetState(); }} style={{ background: "none", border: "none", cursor: "pointer", color: C.soft, fontSize: 13, fontFamily: "inherit" }}>← Назад ко входу</button>
+            <button onClick={() => { setForgot(false); setForgotStep("request"); setResetCode(""); resetState(); }} className="login__link">← Назад ко входу</button>
           </div>
         )}
 
-        {/* ===== ТЕЛЕФОН ===== */}
         {method === "phone" && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <div className="login__form">
             {phoneStep === "phone" && (
               <>
                 <Field icon={Phone} type="tel" value={phone} placeholder="+7 900 000-00-00" autoComplete="tel" onChange={(e) => setPhone(formatPhone(e.target.value))} onKeyDown={(e) => e.key === "Enter" && sendCode()} />
@@ -279,15 +257,15 @@ export default function Login() {
               <>
                 <Field icon={Lock} type="text" inputMode="numeric" maxLength={4} value={code} placeholder="Код из СМС (4 цифры)" onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))} onKeyDown={(e) => e.key === "Enter" && submitCode()} />
                 <Button onClick={submitCode} disabled={busy} style={submitBtn}>{busy ? "Проверяем…" : "Подтвердить"}</Button>
-                <button onClick={() => { setPhoneStep("phone"); setCode(""); resetState(); }} style={{ background: "none", border: "none", cursor: "pointer", color: C.soft, fontSize: 13, fontFamily: "inherit" }}>← Изменить номер</button>
+                <button onClick={() => { setPhoneStep("phone"); setCode(""); resetState(); }} className="login__link">← Изменить номер</button>
               </>
             )}
             {phoneStep === "profile" && (
               <>
-                <div style={{ fontSize: 13.5, color: C.mut }}>Вы впервые — расскажите о себе:</div>
+                <div className="login__hint">Вы впервые — расскажите о себе:</div>
                 <Field icon={User} type="text" value={name} placeholder="Имя" onChange={(e) => setName(e.target.value)} />
                 <Field icon={Calendar} type="number" value={age} placeholder="Возраст" min="7" max="100" onChange={(e) => setAge(e.target.value)} />
-                <div style={{ fontSize: 13.5, fontWeight: 600, marginTop: 2 }}>Какой экзамен?</div>
+                <div className="login__label login__label--sm">Какой экзамен?</div>
                 <LevelChoice value={level} onChange={setLevel} />
                 <Button onClick={submitPhoneProfile} disabled={busy} style={submitBtn}>{busy ? "Создаём…" : "Создать аккаунт"}</Button>
               </>
@@ -295,24 +273,23 @@ export default function Login() {
           </div>
         )}
 
-        {info && <div style={{ fontSize: 13, color: C.greenDk, marginTop: 12 }}>{info}</div>}
-        {err && <div style={{ fontSize: 13, color: "#B91C1C", marginTop: 12, lineHeight: 1.45 }}>{err}</div>}
+        {info && <div className="login__info">{info}</div>}
+        {err && <div className="login__err">{err}</div>}
 
-        {/* разделитель + VK НИЖЕ полей */}
-        <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "18px 0" }}>
-          <div style={{ flex: 1, height: 1, background: C.line }} />
-          <span style={{ fontSize: 12.5, color: C.soft }}>или</span>
-          <div style={{ flex: 1, height: 1, background: C.line }} />
+        <div className="login__divider">
+          <div className="login__divider-line" />
+          <span className="login__divider-text">или</span>
+          <div className="login__divider-line" />
         </div>
         <Button color="#0077FF" onClick={loginVK} style={{ width: "100%", justifyContent: "center", fontSize: 15.5, padding: "13px" }}>
           Войти через VK ID <ArrowRight size={17} />
         </Button>
       </div>
 
-      <p style={{ fontSize: 12, color: C.soft, marginTop: 16, textAlign: "center", lineHeight: 1.5, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+      <p className="login__legal">
         <ShieldCheck size={14} /> Продолжая, вы соглашаетесь с
-        <a href="/legal/offer" style={{ color: C.purple }}>условиями</a> и
-        <a href="/legal/privacy" style={{ color: C.purple }}>политикой</a>.
+        <a href="/legal/offer" className="login__legal-link">условиями</a> и
+        <a href="/legal/privacy" className="login__legal-link">политикой</a>.
       </p>
     </main>
   );

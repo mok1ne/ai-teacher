@@ -1,0 +1,16 @@
+.errbound {
+  min-height: 100vh; display: grid; place-items: center; padding: 24px;
+  background: var(--bg); color: var(--ink); font-family: Inter, system-ui, -apple-system, sans-serif;
+
+  &__inner { max-width: 460px; text-align: center; }
+  &__emoji { font-size: 44px; }
+  &__title { font-size: 22px; font-weight: 800; margin: 12px 0 8px; }
+  &__text { color: var(--mut); font-size: 15px; line-height: 1.5; margin: 0; }
+  &__pre { text-align: left; font-size: 12px; color: var(--soft); background: var(--card);
+    border: 1px solid var(--line); border-radius: 12px; padding: 12px; margin-top: 14px;
+    overflow: auto; white-space: pre-wrap; }
+  &__actions { display: flex; gap: 10px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
+  &__btn { padding: 12px 20px; border-radius: 12px; cursor: pointer; font-weight: 700; font-family: inherit; border: 0;
+    &--primary { background: linear-gradient(120deg, #3b5bff, #7c3aed); color: #fff; }
+    &--ghost { background: transparent; color: var(--mut); border: 1.5px solid var(--line); font-weight: 600; } }
+}

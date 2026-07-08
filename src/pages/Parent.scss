@@ -1,0 +1,43 @@
+@use "../styles/tokens" as *;
+
+.parent {
+  max-width: 1300px; margin: 0 auto; padding: 34px 20px 60px;
+  &__back { display: flex; align-items: center; gap: 6px; background: none; border: none; cursor: pointer;
+    color: var(--mut); font-size: 14px; font-weight: 600; margin-bottom: 16px; font-family: inherit; }
+  &__report { background: linear-gradient(120deg, var(--blueBg), var(--lavBg)); border: 1px solid var(--line);
+    border-radius: 20px; padding: 22px 24px; margin-bottom: 26px; }
+  &__report-label { font-size: 12.5px; font-weight: 700; color: var(--soft); text-transform: uppercase; }
+  &__report-row { display: flex; gap: 26px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+  &__stat-num { font-size: 38px; font-weight: 800;
+    &--blue { color: #{$blue}; } &--green { color: #{$green}; } }
+  &__stat-cap { font-size: 13px; color: var(--mut); }
+  &__report-text { flex: 1; min-width: 200px; font-size: 14.5px; color: var(--sub); line-height: 1.5; }
+  &__title { font-size: 26px; font-weight: 800; margin: 0 0 6px; text-align: center; }
+  &__subtitle { font-size: 14.5px; color: var(--mut); text-align: center; margin: 0 0 24px; }
+  &__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+    @include tablet { grid-template-columns: 1fr; } }
+  &__cta { margin-top: 24px; text-align: center; }
+  &__error { font-size: 13px; color: #B91C1C; margin-top: 12px; }
+  &__note { font-size: 12.5px; color: var(--soft); margin-top: 10px; }
+  &__legal { font-size: 12.5px; color: var(--soft); margin: 12px auto 0; max-width: 460px; line-height: 1.5; }
+}
+.tariff {
+  background: var(--card); border-radius: 18px; padding: 22px; cursor: pointer; position: relative;
+  border: 2px solid var(--line); transition: all .15s;
+  &--best { border-color: color-mix(in srgb, var(--t-color) 55%, transparent); }
+  &--picked { border-color: var(--t-color); box-shadow: 0 14px 32px -18px var(--t-color); }
+  &__badge { position: absolute; top: -11px; left: 50%; transform: translateX(-50%); font-size: 11px;
+    font-weight: 700; color: #fff; background: var(--t-color); padding: 3px 12px; border-radius: 20px; }
+  &__name { font-size: 16px; font-weight: 700; color: var(--t-color); }
+  &__price { margin: 8px 0 14px; }
+  &__price-num { font-size: 30px; font-weight: 800; }
+  &__price-per { font-size: 14px; color: var(--mut); }
+  &__feats { display: grid; gap: 8px; }
+  &__feat { display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--sub); }
+}
+.pay-done {
+  max-width: 540px; margin: 0 auto; padding: 60px 20px; text-align: center;
+  &__icon { width: 70px; height: 70px; border-radius: 20px; background: var(--mintBg); display: grid; place-items: center; margin: 0 auto 18px; }
+  &__title { font-size: 26px; font-weight: 800; margin: 0 0 8px; }
+  &__text { font-size: 15.5px; color: var(--mut); line-height: 1.55; margin: 0 0 24px; }
+}

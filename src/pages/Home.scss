@@ -1,0 +1,56 @@
+@use "../styles/tokens" as *;
+
+.home {
+  &__hero { max-width: 1300px; margin: 0 auto; padding: 46px 22px 30px; }
+  &__how { max-width: 1300px; margin: 0 auto; padding: 30px 22px; }
+  &__trust-wrap { max-width: 1300px; margin: 0 auto; padding: 16px 22px; }
+  &__subjects { max-width: 1300px; margin: 0 auto; padding: 30px 22px 10px; }
+  &__cta-wrap { max-width: 1300px; margin: 26px auto 10px; padding: 0 22px; }
+
+  &__hero-grid { display: grid; grid-template-columns: 1.05fr .95fr; gap: 40px; align-items: center;
+    @include tablet { grid-template-columns: 1fr; gap: 24px; } }
+  &__title { font-size: 46px; line-height: 1.08; font-weight: 800; margin: 0; letter-spacing: -.02em;
+    @include mobile { font-size: 34px; } }
+  &__hl-blue { color: #{$blue}; }
+  &__hl-purple { color: #{$purple}; }
+  &__sub { font-size: 21px; color: var(--sub); margin-top: 14px; line-height: 1.4; font-weight: 500;
+    @include mobile { font-size: 18px; } }
+  &__pills { display: flex; gap: 26px; flex-wrap: wrap; margin: 26px 0 30px;
+    @include mobile { gap: 14px 18px; } }
+  &__btns { display: flex; gap: 12px; flex-wrap: wrap;
+    @include mobile { width: 100%; & > * { flex: 1 1 100%; justify-content: center; } } }
+  &__free { font-size: 13px; color: var(--soft); margin-top: 14px; display: flex; align-items: center; gap: 6px; }
+
+  &__cards3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px;
+    @include tablet { grid-template-columns: 1fr; } }
+
+  &__step { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 24px; box-shadow: 0 8px 24px -18px rgba(15, 23, 42, .33); }
+  &__step-icon { width: 48px; height: 48px; border-radius: 13px; background: var(--ic-bg); display: grid; place-items: center; margin-bottom: 14px; }
+  &__step-title { margin: 0 0 7px; font-size: 18px; font-weight: 700; }
+  &__step-text { margin: 0; font-size: 14.5px; color: var(--mut); line-height: 1.5; }
+
+  &__trust { border-radius: 22px; padding: 26px 28px; display: flex; gap: 18px; align-items: center; flex-wrap: wrap;
+    background: linear-gradient(120deg, var(--mintBg), var(--blueBg)); border: 1px solid var(--line); }
+  &__trust-icon { width: 54px; height: 54px; border-radius: 15px; background: var(--card); display: grid; place-items: center;
+    box-shadow: 0 6px 16px -10px rgba(15, 23, 42, .4); color: #{$green}; flex-shrink: 0; }
+  &__trust-main { flex: 1; min-width: 260px; }
+  &__trust-title { margin: 0 0 4px; font-size: 18px; font-weight: 700; }
+  &__trust-text { margin: 0; font-size: 14.5px; color: var(--sub); line-height: 1.5; }
+
+  &__subject { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 20px;
+    transition: box-shadow .15s; display: flex; align-items: center; gap: 14px; cursor: pointer;
+    &:hover { box-shadow: 0 12px 28px -16px var(--sub-shadow); }
+    &--locked { opacity: .62; cursor: default; &:hover { box-shadow: none; } } }
+  &__subject-icon { width: 50px; height: 50px; border-radius: 13px; background: var(--sub-bg); display: grid; place-items: center; flex-shrink: 0; }
+  &__subject-main { flex: 1; }
+  &__subject-name { font-size: 16px; font-weight: 700; }
+  &__subject-level { font-size: 12.5px; color: var(--soft); margin-top: 2px; }
+  &__subject-arrow { color: var(--sub-acc); flex-shrink: 0; }
+  &__subject-soon { font-size: 11px; font-weight: 700; color: var(--soft); display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+  &__subjects-note { font-size: 13px; color: var(--soft); margin-top: 14px; }
+
+  &__cta { border-radius: 24px; padding: 34px 30px; text-align: center; color: #fff;
+    background: linear-gradient(120deg, #{$blue}, #{$purple}); }
+  &__cta-title { margin: 0 0 8px; font-size: 27px; font-weight: 800; }
+  &__cta-text { margin: 0 auto 20px; font-size: 16px; opacity: .92; max-width: 520px; line-height: 1.5; }
+}

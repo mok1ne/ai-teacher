@@ -1,0 +1,10 @@
+@use "../styles/tokens" as *;
+
+.vk-callback {
+  max-width: 460px; margin: 0 auto; padding: 80px 20px; text-align: center;
+  &__error { font-size: 15.5px; color: #B91C1C; margin-bottom: 16px; }
+  &__link { color: #{$blue}; background: none; border: none; cursor: pointer; font-size: 15px; font-weight: 600; font-family: inherit; }
+  &__loading { display: flex; flex-direction: column; align-items: center; gap: 14px; color: var(--mut); }
+  &__loading-icon { color: #{$blue}; }
+  &__loading-text { font-size: 15px; }
+}

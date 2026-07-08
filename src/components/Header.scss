@@ -1,0 +1,19 @@
+@use "../styles/tokens" as *;
+
+.header {
+  position: sticky; top: 0; z-index: 50;
+  background: var(--glass); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+
+  &__inner { max-width: 1300px; margin: 0 auto; padding: 13px 22px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  &__brand { display: flex; align-items: center; gap: 9px; text-decoration: none; color: var(--ink); }
+  &__name { font-weight: 800; font-size: 17px; }
+  &__badge { font-size: 10px; font-weight: 700; color: #{$purple}; background: var(--lavBg); padding: 2px 7px; border-radius: 20px; }
+  &__actions { display: flex; align-items: center; gap: 6px; }
+  &__nav { display: flex; align-items: center; gap: 6px; }
+  &__navitem { text-decoration: none; cursor: pointer; font-size: 14px; font-weight: 600;
+    padding: 7px 12px; border-radius: 9px; color: var(--sub); background: transparent; transition: .4s ease;
+    &:hover {color: #EAF0FF;}
+    &--active { color: var(--sub); background: var(--blueBg); } }
+}

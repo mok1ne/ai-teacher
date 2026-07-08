@@ -9,6 +9,7 @@ import { useApp } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
 import { PLAN_LIMITS } from "../config";
 import { C } from "../theme";
+import "./Tutor.scss";
 
 export default function Tutor() {
   const navigate = useNavigate();
@@ -40,10 +41,10 @@ export default function Tutor() {
 
   useEffect(() => {
     if (started.current) return;
-    if (loading) return;        // ждём проверки авторизации
-    if (!user) return;          // гость — чат закрыт
+    if (loading) return;
+    if (!user) return;
     started.current = true;
-    if (limitReached) return;   // лимит исчерпан — стартовое объяснение не запускаем
+    if (limitReached) return;
     const seed = { role: "user", hidden: true,
       content: general
         ? `Поприветствуй ученика как ИИ-репетитор сервиса «Время сдавать». Коротко и тепло скажи, что помогаешь готовиться к ЕГЭ и ОГЭ по любому предмету и теме, и спроси, с чего хочет начать.`
@@ -75,90 +76,75 @@ export default function Tutor() {
 
   if (loading) {
     return (
-      <main className="page" style={{ maxWidth: 1300, margin: "0 auto", padding: "80px 20px", textAlign: "center", color: C.mut }}>
-        <Loader2 size={28} className="spin" style={{ color: C.blue }} />
+      <main className="page tutor-loading">
+        <Loader2 size={28} className="spin tutor-loading__icon" />
       </main>
     );
   }
   if (!user) {
     return (
-      <main className="page" style={{ maxWidth: 460, margin: "0 auto", padding: "60px 20px", textAlign: "center" }}>
-        <div style={{ width: 60, height: 60, borderRadius: 17, background: `linear-gradient(135deg,${C.blue},${C.purple})`, display: "grid", placeItems: "center", margin: "0 auto 16px" }}>
-          <Brain size={28} color="#fff" />
-        </div>
-        <h1 style={{ fontSize: 24, fontWeight: 800, margin: "0 0 8px" }}>Чат доступен после входа</h1>
-        <p style={{ fontSize: 15, color: C.mut, lineHeight: 1.55, margin: "0 0 22px" }}>
-          Войдите через VK или почту, чтобы заниматься с ИИ-репетитором и сохранять прогресс.
-        </p>
+      <main className="page tutor-gate">
+        <div className="tutor-gate__icon"><Brain size={28} /></div>
+        <h1 className="tutor-gate__title">Чат доступен после входа</h1>
+        <p className="tutor-gate__text">Войдите через VK или почту, чтобы заниматься с ИИ-репетитором и сохранять прогресс.</p>
         <Button size="lg" onClick={() => navigate("/login?next=/chat")}>Войти и продолжить</Button>
       </main>
     );
   }
 
   return (
-    <main className="chat-page" style={{ maxWidth: 1300, margin: "0 auto", padding: "16px 20px 22px", display: "flex", flexDirection: "column", height: "calc(100vh - 62px)" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-        <button onClick={() => navigate(-1)} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", cursor: "pointer", color: C.mut, fontSize: 14, fontWeight: 600 }}>
-          <ArrowLeft size={16} /> Назад
-        </button>
-        <div style={{ fontSize: 12, fontWeight: 700, color: C.purple, background: C.lavBg, padding: "5px 12px", borderRadius: 20 }}>
-          {general ? "Чат с репетитором" : `Тема: ${topic}`}
-        </div>
+    <main className="tutor">
+      <div className="tutor__top">
+        <button onClick={() => navigate(-1)} className="tutor__back"><ArrowLeft size={16} /> Назад</button>
+        <div className="tutor__badge">{general ? "Чат с репетитором" : `Тема: ${topic}`}</div>
       </div>
 
-      <div className="chat-2col" style={{ flex: 1, display: "flex", gap: 18, minHeight: 0 }}>
-        {/* chat column */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
-          <div ref={scroller} style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 14, padding: "10px 2px 18px" }}>
-            <div style={{ alignSelf: "center", textAlign: "center", maxWidth: 420, padding: "10px 0 6px" }}>
-              <div style={{ width: 44, height: 44, borderRadius: 13, background: `linear-gradient(135deg,${C.blue},${C.purple})`, display: "grid", placeItems: "center", margin: "0 auto 8px" }}>
-                <Brain size={22} color="#fff" />
-              </div>
-              <div style={{ fontSize: 13.5, color: C.soft }}>Ваш персональный ИИ-репетитор. Отвечает по формату ФИПИ, без выдумок, и только по учёбе.</div>
+      <div className="tutor__cols">
+        <div className="tutor__main">
+          <div ref={scroller} className="tutor__scroll">
+            <div className="tutor__intro">
+              <div className="tutor__intro-icon"><Brain size={22} /></div>
+              <div className="tutor__intro-text">Ваш персональный ИИ-репетитор. Отвечает по формату ФИПИ, без выдумок, и только по учёбе.</div>
             </div>
 
             {visible.map((m, i) => <ChatBubble key={i} role={m.role} text={m.content} />)}
             {busy && <ChatBubble role="assistant" typing />}
             {error && (
-              <div style={{ alignSelf: "flex-start", background: "#FEF2F2", color: "#B91C1C", padding: "12px 16px", borderRadius: 14, fontSize: 14, maxWidth: "85%" }}>
+              <div className="tutor__error">
                 Не удалось связаться с ИИ. Проверьте соединение и попробуйте отправить сообщение ещё раз.
               </div>
             )}
             {limitReached && visible.length === 0 && !busy && (
-              <div style={{ alignSelf: "center", textAlign: "center", maxWidth: 380, color: C.mut, fontSize: 14, marginTop: 20 }}>
+              <div className="tutor__limit-msg">
                 На этой неделе бесплатные сообщения закончились. Лимит обновится на следующей неделе — или откройте безлимит.
               </div>
             )}
           </div>
 
           {!general && !isStudied && visible.length > 0 && !busy && (
-            <div style={{ display: "flex", justifyContent: "center", marginBottom: 10 }}>
+            <div className="tutor__studied-btn">
               <Button size="sm" variant="soft" color={C.green} onClick={() => markStudied(subjectKey, topic)}>
                 <CheckCircle2 size={15} /> Я разобрался — отметить тему изученной (+2 балла к прогнозу)
               </Button>
             </div>
           )}
           {!general && isStudied && (
-            <div style={{ textAlign: "center", marginBottom: 10, fontSize: 13, fontWeight: 600, color: C.greenDk }}>
-              ✓ Тема изучена. <span onClick={() => navigate("/progress")} style={{ color: C.blue, cursor: "pointer", textDecoration: "underline" }}>Посмотреть прогресс</span>
+            <div className="tutor__studied-done">
+              ✓ Тема изучена. <span onClick={() => navigate("/progress")} className="tutor__link">Посмотреть прогресс</span>
             </div>
           )}
 
           {limitReached ? (
-            <div style={{ background: C.lavBg, border: `1.5px solid ${C.purple}33`, borderRadius: 14, padding: "14px 16px", display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-              <Lock size={20} style={{ color: C.purple }} />
+            <div className="tutor__lock">
+              <Lock size={20} className="tutor__lock-icon" />
               {!user ? (
                 <>
-                  <div style={{ flex: 1, minWidth: 200, fontSize: 13.5, color: C.sub }}>
-                    Бесплатные сообщения без входа закончились. Войдите через VK или почту, чтобы продолжить.
-                  </div>
+                  <div className="tutor__lock-text">Бесплатные сообщения без входа закончились. Войдите через VK или почту, чтобы продолжить.</div>
                   <Button size="sm" color={C.purple} onClick={() => navigate("/login?next=/chat")}>Войти</Button>
                 </>
               ) : (
                 <>
-                  <div style={{ flex: 1, minWidth: 200, fontSize: 13.5, color: C.sub }}>
-                    Недельный лимит тарифа исчерпан ({limit} сообщений). Откройте безлимит, чтобы продолжить.
-                  </div>
+                  <div className="tutor__lock-text">Недельный лимит тарифа исчерпан ({limit} сообщений). Откройте безлимит, чтобы продолжить.</div>
                   <Button size="sm" color={C.purple} onClick={() => navigate("/parent")}>Открыть безлимит</Button>
                 </>
               )}
@@ -166,16 +152,15 @@ export default function Tutor() {
           ) : (
             <>
               {!unlimited && (
-                <div style={{ fontSize: 12, color: C.soft, marginBottom: 6, textAlign: "right" }}>
+                <div className="tutor__remaining">
                   Осталось {remaining} из {limit} сообщений на этой неделе{!user ? " · войдите, чтобы получить больше" : ""}
                 </div>
               )}
-              <div style={{ display: "flex", gap: 10, alignItems: "flex-end" }}>
+              <div className="tutor__inputbar">
                 <textarea value={input} onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
                   placeholder={general ? "Спросите что угодно по подготовке…" : "Задайте вопрос по теме…"} rows={1}
-                  style={{ flex: 1, resize: "none", padding: "13px 16px", borderRadius: 14, border: `1.5px solid ${C.line}`,
-                    fontSize: 15, fontFamily: "inherit", outline: "none", maxHeight: 120, background: C.card, color: C.ink }} />
+                  className="tutor__textarea" />
                 <Button onClick={send} disabled={busy || !input.trim()} style={{ padding: 13, borderRadius: 14 }}>
                   {busy ? <Loader2 size={20} className="spin" /> : <Send size={20} />}
                 </Button>
@@ -184,26 +169,21 @@ export default function Tutor() {
           )}
         </div>
 
-        {/* source panel (RAG grounding made visible) */}
-        <aside className="source-panel" style={{ width: 300, flexShrink: 0, background: C.track, border: `1px solid ${C.line}`, borderRadius: 16, padding: 18, overflowY: "auto" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 9, background: C.mintBg, display: "grid", placeItems: "center" }}>
-              <ShieldCheck size={17} style={{ color: C.green }} />
-            </div>
-            <div style={{ fontSize: 13.5, fontWeight: 700 }}>Проверенный источник</div>
+        <aside className="tutor__panel">
+          <div className="tutor__panel-head">
+            <div className="tutor__panel-icon"><ShieldCheck size={17} /></div>
+            <div className="tutor__panel-title">Проверенный источник</div>
           </div>
           {source ? (
             <>
-              <div style={{ fontSize: 12.5, fontWeight: 700, color: C.purple, background: C.lavBg, padding: "6px 10px", borderRadius: 9, marginBottom: 10 }}>
-                {source.ref}
-              </div>
-              <p style={{ fontSize: 13, color: C.sub, lineHeight: 1.5, margin: 0 }}>{source.content}</p>
-              <div style={{ marginTop: 12, fontSize: 12, color: C.soft, lineHeight: 1.45, borderTop: `1px solid ${C.line}`, paddingTop: 10 }}>
+              <div className="tutor__panel-ref">{source.ref}</div>
+              <p className="tutor__panel-text">{source.content}</p>
+              <div className="tutor__panel-note">
                 ИИ отвечает строго по этому источнику. За его пределами — честно скажет, что в проверенной базе данных нет.
               </div>
             </>
           ) : (
-            <p style={{ fontSize: 13, color: C.sub, lineHeight: 1.5, margin: 0 }}>
+            <p className="tutor__panel-text">
               Когда вы разбираете конкретную тему из диагностики, ИИ опирается на кодификаторы и задания ФИПИ — и источник появляется здесь.
             </p>
           )}

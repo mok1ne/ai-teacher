@@ -6,6 +6,7 @@ import { SUBJECTS } from "../data/subjects";
 import { ExamBlock } from "../components/ExamReminder";
 import { useApp } from "../context/AppContext";
 import { C } from "../theme";
+import "./Results.scss";
 
 export default function Results() {
   const navigate = useNavigate();
@@ -19,39 +20,32 @@ export default function Results() {
   const openTutor = (topic) => { setTutorTarget({ topic, exam: subject.level, subjectKey: results.subjectKey }); navigate("/chat"); };
 
   return (
-    <main className="page" style={{ maxWidth: 1300, margin: "0 auto", padding: "34px 20px 60px" }}>
+    <main className="page results">
       <ExamBlock subjectKey={results.subjectKey} />
-      <div className="res-2col" style={{ display: "grid", gridTemplateColumns: "360px 1fr", gap: 24, alignItems: "start" }}>
-        {/* score card */}
-        <div style={{ textAlign: "center", background: C.card, border: `1px solid ${C.line}`, borderRadius: 22, padding: "28px 22px", boxShadow: "0 14px 40px -28px #0f172a66" }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: C.soft, textTransform: "uppercase", letterSpacing: ".05em", marginBottom: 14 }}>Прогноз · {subject.name} · {subject.level}</div>
+      <div className="results__grid">
+        <div className="results__score">
+          <div className="results__score-label">Прогноз · {subject.name} · {subject.level}</div>
           <ScoreView sc={sc} />
-          <p style={{ fontSize: 14.5, color: C.mut, margin: "14px 0 18px" }}>
-            Верных ответов: <b style={{ color: C.ink }}>{correct} из {total}</b>. Ориентировочный результат по шкале {subject.level} — с разбором тем он будет расти.
+          <p className="results__score-note">
+            Верных ответов: <b>{correct} из {total}</b>. Ориентировочный результат по шкале {subject.level} — с разбором тем он будет расти.
           </p>
-          <div style={{ display: "grid", gap: 10 }}>
+          <div className="results__score-actions">
             {weak.length > 0 && <Button color={C.purple} onClick={() => openTutor(weak[0])} style={{ justifyContent: "center" }}><Sparkles size={17} /> Разобрать первую тему</Button>}
             <Button variant="soft" onClick={() => navigate(`/test/${results.subjectKey}`)} style={{ justifyContent: "center" }}><RefreshCw size={16} /> Пройти заново</Button>
           </div>
         </div>
 
-        {/* topics */}
         <div>
           {weak.length > 0 && (
             <div>
-              <h3 style={{ fontSize: 19, fontWeight: 700, margin: "0 0 4px", display: "flex", alignItems: "center", gap: 8 }}>
-                <Target size={20} style={{ color: C.amber }} /> Темы, которые стоит подтянуть
-              </h3>
-              <p style={{ fontSize: 14, color: C.mut, margin: "0 0 14px" }}>Начните с первой — ИИ-репетитор разберёт её с вами прямо сейчас.</p>
-              <div style={{ display: "grid", gap: 10 }}>
+              <h3 className="results__section-title"><Target size={20} style={{ color: C.amber }} /> Темы, которые стоит подтянуть</h3>
+              <p className="results__section-desc">Начните с первой — ИИ-репетитор разберёт её с вами прямо сейчас.</p>
+              <div className="results__weak">
                 {weak.map((t, i) => (
-                  <div key={t} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
-                    background: C.card, border: `1.5px solid ${i === 0 ? C.purple + "55" : C.line}`, borderRadius: 14, padding: "14px 16px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
-                      <span style={{ width: 30, height: 30, borderRadius: 9, background: C.lavBg, color: C.purple, display: "grid", placeItems: "center", flexShrink: 0 }}>
-                        <Brain size={16} />
-                      </span>
-                      <span style={{ fontSize: 15, fontWeight: 600 }}>{t}</span>
+                  <div key={t} className={`results__topic${i === 0 ? " results__topic--first" : ""}`}>
+                    <div className="results__topic-left">
+                      <span className="results__topic-icon"><Brain size={16} /></span>
+                      <span className="results__topic-name">{t}</span>
                     </div>
                     <Button size="sm" color={C.purple} onClick={() => openTutor(t)}>Разобрать <ArrowRight size={15} /></Button>
                   </div>
@@ -61,14 +55,10 @@ export default function Results() {
           )}
 
           {strong.length > 0 && (
-            <div style={{ marginTop: 22 }}>
-              <h3 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 10px", display: "flex", alignItems: "center", gap: 8 }}>
-                <CheckCircle2 size={18} style={{ color: C.green }} /> Уже хорошо
-              </h3>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                {strong.map((t) => (
-                  <span key={t} style={{ fontSize: 13, fontWeight: 600, color: C.greenDk, background: C.mintBg, padding: "7px 13px", borderRadius: 20 }}>{t}</span>
-                ))}
+            <div className="results__strong">
+              <h3 className="results__section-title results__section-title--sm"><CheckCircle2 size={18} style={{ color: C.green }} /> Уже хорошо</h3>
+              <div className="results__chips">
+                {strong.map((t) => <span key={t} className="results__chip">{t}</span>)}
               </div>
             </div>
           )}

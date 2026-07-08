@@ -1,0 +1,65 @@
+@use "../styles/tokens" as *;
+
+.settings {
+  max-width: 900px; margin: 0 auto; padding: 30px 20px 60px;
+  &__back { display: flex; align-items: center; gap: 6px; background: none; border: none; cursor: pointer;
+    color: var(--mut); font-size: 14px; font-weight: 600; margin-bottom: 14px; font-family: inherit; }
+  &__title { font-size: 27px; font-weight: 800; margin: 0 0 20px; }
+
+  &__grid { display: grid; grid-template-columns: 230px 1fr; gap: 22px; align-items: start;
+    @include mobile { grid-template-columns: 1fr; } }
+  &__nav { display: flex; flex-direction: column; gap: 4px; position: sticky; top: 20px;
+    @include mobile { flex-direction: row; overflow-x: auto; position: static; padding-bottom: 4px; } }
+  &__nav-btn { display: flex; align-items: center; gap: 10px; padding: 11px 13px; border-radius: 12px; border: 0;
+    cursor: pointer; font-family: inherit; font-size: 14.5px; font-weight: 600; text-align: left; white-space: nowrap;
+    background: transparent; color: var(--sub);
+    &--active { background: var(--lavBg); color: #{$purple}; } }
+
+  &__panel { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 24px; min-height: 260px; }
+  &__h { font-size: 20px; font-weight: 800; margin: 0 0 4px; }
+  &__desc { font-size: 13.5px; color: var(--mut); margin: 0 0 18px; }
+  &__row { display: flex; align-items: center; gap: 12px; }
+  &__input { width: 100%; box-sizing: border-box; border: 1.5px solid var(--line); border-radius: 11px;
+    padding: 11px 13px; font-size: 14.5px; font-family: inherit; color: var(--ink); outline: none; margin-bottom: 10px; background: var(--card); }
+  &__err { font-size: 13px; color: #DC2626; margin-top: 10px; }
+  &__muted { font-size: 13.5px; color: var(--soft); }
+  &__note { font-size: 12px; color: var(--soft); margin-top: 12px; line-height: 1.5; }
+  &__ok { font-size: 13px; color: #{$green}; display: flex; align-items: center; gap: 4px; }
+
+  &__choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  &__choice { padding: 16px; border-radius: 13px; cursor: pointer; text-align: left; font-family: inherit;
+    background: var(--card); border: 2px solid var(--line);
+    &--active { background: var(--lavBg); border-color: #{$purple}; } }
+  &__choice-title { font-size: 18px; font-weight: 800; color: var(--ink); }
+  &__choice--active &__choice-title { color: #{$purple}; }
+  &__choice-sub { font-size: 12px; color: var(--mut); }
+
+  &__toggle-label { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+  &__toggle { width: 46px; height: 26px; border-radius: 20px; background: var(--line); position: relative; transition: background .2s; flex-shrink: 0;
+    &--on { background: #{$green}; } }
+  &__toggle-knob { position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%;
+    background: #fff; transition: left .2s; box-shadow: 0 1px 3px rgba(0, 0, 0, .2);
+    .settings__toggle--on & { left: 23px; } }
+  &__toggle-text { font-size: 14.5px; font-weight: 600; }
+
+  &__themes { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  &__theme { padding: 10px; border-radius: 15px; cursor: pointer; font-family: inherit; background: var(--card); border: 2px solid var(--line); transition: border-color .15s;
+    &--active { border-color: #{$purple}; } }
+  &__theme-label { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 10px; font-size: 13.5px; font-weight: 700; color: var(--ink); }
+  &__theme--active &__theme-label { color: #{$purple}; }
+}
+
+.theme-preview {
+  height: 54px; border-radius: 10px; border: 1px solid var(--line); overflow: hidden;
+  &--light { background: #FFFFFF; padding: 9px; }
+  &--dark { background: #0B1020; padding: 9px; }
+  &--system { display: flex; }
+  &__half { flex: 1; padding: 8px;
+    &--light { background: #FFFFFF; } &--dark { background: #0B1020; } }
+  &__bar { border-radius: 3px;
+    &--accent { width: 22px; height: 5px; background: #7C3AED; }
+    &--accent-d { width: 20px; height: 5px; background: #A276FF; }
+    &--line { width: 34px; height: 4px; background: #E6EAF2; margin-top: 6px; }
+    &--line2 { width: 26px; height: 4px; background: #E6EAF2; margin-top: 5px; }
+    &--line-d { width: 30px; height: 4px; background: #2A3450; margin-top: 5px; } }
+}

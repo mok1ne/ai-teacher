@@ -1,45 +1,34 @@
 import { Link } from "react-router-dom";
 import Logo from "./Logo";
-import { C } from "../theme";
-
-const linkStyle = { textDecoration: "none", color: C.mut, fontSize: 13.5, lineHeight: 2 };
+import "./Footer.scss";
 
 function Col({ title, items }) {
   return (
-    <div>
-      <div style={{ fontSize: 12.5, fontWeight: 700, color: C.ink, textTransform: "uppercase", letterSpacing: ".04em", marginBottom: 8 }}>{title}</div>
-      {items.map(([label, to]) => (
-        <div key={label}><Link to={to} style={linkStyle}>{label}</Link></div>
-      ))}
+    <div className="footer__col">
+      <div className="footer__col-title">{title}</div>
+      {items.map(([label, to]) => (<Link key={label} to={to} className="footer__link">{label}</Link>))}
     </div>
   );
 }
 
 export default function Footer() {
   return (
-    <footer style={{ borderTop: `1px solid ${C.line}`, background: C.bg }}>
-      <div style={{ maxWidth: 1300, margin: "0 auto", padding: "34px 22px 26px" }}>
-        <div style={{ display: "flex", gap: 40, flexWrap: "wrap", justifyContent: "space-between" }}>
-          <div style={{ maxWidth: 320 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 8 }}>
-              <Logo size={30} />
-              <span style={{ fontWeight: 800, fontSize: 16 }}>Время сдавать</span>
-            </div>
-            <p style={{ fontSize: 13.5, color: C.mut, lineHeight: 1.55, margin: 0 }}>
-              ИИ-репетитор для подготовки к ЕГЭ и ОГЭ по проверенным источникам ФИПИ.
-            </p>
+    <footer className="footer">
+      <div className="footer__inner">
+        <div className="footer__top">
+          <div className="footer__brand">
+            <div className="footer__brand-row"><Logo size={30} /><span className="footer__name">Время сдавать</span></div>
+            <p className="footer__desc">ИИ-репетитор для подготовки к ЕГЭ и ОГЭ по проверенным источникам ФИПИ.</p>
           </div>
-
-          <div style={{ display: "flex", gap: 48, flexWrap: "wrap" }}>
+          <div className="footer__cols">
             <Col title="Навигация" items={[["Главная", "/"], ["Пройти тест", "/test"], ["Чат с ИИ", "/chat"], ["Мой прогресс", "/progress"]]} />
             <Col title="Документы" items={[["Публичная оферта", "/legal/offer"], ["Политика конфиденциальности", "/legal/privacy"], ["Согласие на обработку ПДн", "/legal/consent"], ["Рекомендательные технологии", "/legal/recommendations"]]} />
             <Col title="Контакты" items={[["Войти", "/login"], ["Тарифы", "/parent"]]} />
           </div>
         </div>
-
-        <div style={{ borderTop: `1px solid ${C.line}`, marginTop: 24, paddingTop: 16, display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 12.5, color: C.soft }}>© {new Date().getFullYear()} «Время сдавать». MVP-демо.</span>
-          <span style={{ fontSize: 12.5, color: C.soft }}>Сделано для подготовки к ЕГЭ и ОГЭ</span>
+        <div className="footer__bottom">
+          <span className="footer__copy">© {new Date().getFullYear()} «Время сдавать». MVP-демо.</span>
+          <span className="footer__copy">Сделано для подготовки к ЕГЭ и ОГЭ</span>
         </div>
       </div>
     </footer>

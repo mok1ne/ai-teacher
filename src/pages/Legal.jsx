@@ -1,6 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, FileText } from "lucide-react";
-import { C } from "../theme";
+import "./Legal.scss";
 
 /* Полные тексты документов. Поля вида [●] — реквизиты оператора, которые нужно
    заполнить (наименование, ИНН/ОГРН, адрес, e-mail). Тексты рекомендуется
@@ -73,26 +73,24 @@ export default function Legal() {
   const doc = DOCS[slug];
 
   return (
-    <main className="page" style={{ maxWidth: 820, margin: "0 auto", padding: "40px 20px 60px" }}>
-      <Link to="/" style={{ display: "inline-flex", alignItems: "center", gap: 6, textDecoration: "none", color: C.mut, fontSize: 14, fontWeight: 600, marginBottom: 18 }}>
-        <ArrowLeft size={16} /> На главную
-      </Link>
+    <main className="page legal">
+      <Link to="/" className="legal__back"><ArrowLeft size={16} /> На главную</Link>
 
       {!doc ? (
-        <p style={{ fontSize: 16, color: C.mut }}>Документ не найден.</p>
+        <p className="legal__notfound">Документ не найден.</p>
       ) : (
         <>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-            <FileText size={24} style={{ color: C.purple }} />
-            <h1 style={{ fontSize: 27, fontWeight: 800, margin: 0 }}>{doc.title}</h1>
+          <div className="legal__head">
+            <FileText size={24} className="legal__head-icon" />
+            <h1 className="legal__title">{doc.title}</h1>
           </div>
-          <div style={{ background: C.creamBg, border: `1px solid ${C.line}`, borderRadius: 12, padding: "12px 16px", fontSize: 13, color: C.amberDk, marginBottom: 24 }}>
+          <div className="legal__notice">
             Заполните реквизиты в полях [●] и согласуйте финальную редакцию с юристом.
           </div>
           {doc.sections.map(([h, t], i) => (
-            <div key={i} style={{ marginBottom: 18 }}>
-              <h3 style={{ fontSize: 16.5, fontWeight: 700, margin: "0 0 6px" }}>{h}</h3>
-              <p style={{ fontSize: 14.5, color: C.sub, lineHeight: 1.6, margin: 0, whiteSpace: "pre-line" }}>{t}</p>
+            <div key={i} className="legal__section">
+              <h3 className="legal__section-title">{h}</h3>
+              <p className="legal__section-text">{t}</p>
             </div>
           ))}
         </>

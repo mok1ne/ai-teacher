@@ -1,0 +1,14 @@
+@use "../styles/tokens" as *;
+
+.notfound {
+  min-height: 70vh; display: grid; place-items: center; padding: 40px 20px; text-align: center;
+
+  &__inner { max-width: 460px; }
+  &__logo { margin: 0 auto 20px; width: 60px; }
+  &__code { font-size: 96px; font-weight: 800; line-height: 1; letter-spacing: -.03em;
+    background: linear-gradient(120deg, #{$blue}, #{$purple});
+    -webkit-background-clip: text; background-clip: text; color: transparent; }
+  &__title { font-size: 24px; font-weight: 800; margin: 14px 0 8px; color: var(--ink); }
+  &__text { font-size: 15.5px; color: var(--mut); margin: 0 0 26px; line-height: 1.5; }
+  &__actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+}

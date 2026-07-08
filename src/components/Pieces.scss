@@ -1,0 +1,31 @@
+@use "../styles/tokens" as *;
+
+.pill {
+  display: flex; align-items: center; gap: 10px;
+  &__icon { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; flex-shrink: 0; background: var(--ic-bg); }
+  &__title { font-size: 13.5px; font-weight: 600; color: var(--sub); line-height: 1.25; white-space: pre-line; }
+}
+.section-head {
+  margin-bottom: 20px;
+  &__eyebrow { font-size: 12.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #{$purple}; margin-bottom: 6px; }
+  &__title { margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -.01em; }
+}
+.stat {
+  background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 18px; display: flex; align-items: center; gap: 13px;
+  &__icon { width: 46px; height: 46px; border-radius: 13px; display: grid; place-items: center; background: var(--ic-bg); }
+  &__value { font-size: 20px; font-weight: 800; }
+  &__label { font-size: 12.5px; color: var(--mut); }
+}
+.level-tabs {
+  display: inline-flex; background: var(--track); border-radius: 12px; padding: 4px; gap: 4px;
+  &__btn { border: none; cursor: pointer; padding: 8px 20px; border-radius: 9px; font-size: 14px; font-weight: 700; font-family: inherit;
+    background: transparent; color: var(--mut); transition: all .15s;
+    &--active { background: var(--card); color: #{$blue}; box-shadow: 0 2px 8px -4px rgba(15, 23, 42, .33); } }
+}
+.score {
+  text-align: center;
+  &__mark { font-size: 68px; font-weight: 800; line-height: 1; }
+  &__mark-label { font-size: 14px; font-weight: 600; color: var(--mut); margin-top: 2px; }
+  &__sub { font-size: 12.5px; color: var(--soft); margin-top: 6px; }
+  &__warn { font-size: 12.5px; color: #DC2626; margin-top: 4px; }
+}

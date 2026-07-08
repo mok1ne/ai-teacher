@@ -3,7 +3,7 @@ import { useParams, useNavigate, Navigate } from "react-router-dom";
 import { ArrowLeft, Clock } from "lucide-react";
 import { SUBJECTS } from "../data/subjects";
 import { useApp } from "../context/AppContext";
-import { C } from "../theme";
+import "./Test.scss";
 
 function shuffle(arr) {
   const a = [...arr];
@@ -23,8 +23,7 @@ export default function Test() {
   const [qIndex, setQIndex] = useState(0);
   const [answers, setAnswers] = useState([]);
 
-  // Перемешиваем варианты для каждого вопроса один раз (на старте теста),
-  // чтобы правильный ответ не оказывался всегда на одной позиции.
+  // Перемешиваем варианты для каждого вопроса один раз (на старте теста).
   const questions = useMemo(() => {
     if (!subject) return [];
     return subject.questions.map((q) => {
@@ -47,7 +46,7 @@ export default function Test() {
       stats[qq.topic].t++;
       if (allAnswers[idx] === qq.correct) {
         stats[qq.topic].c++;
-        primary += qq.points || 1; // сложные задания дают больше первичных баллов
+        primary += qq.points || 1;
       }
     });
     let correct = 0; const weak = []; const strong = [];
@@ -55,7 +54,6 @@ export default function Test() {
       correct += s.c;
       if (s.c < s.t) weak.push(topic); else strong.push(topic);
     });
-    // первичный балл = сумма весов; перевод в шкалу — в lib/scoring.js
     setResults({ subjectKey, levelKey: subject.levelKey, primary, correct, total, weak, strong });
     navigate("/results");
   }
@@ -69,40 +67,29 @@ export default function Test() {
   const back = () => (qIndex > 0 ? setQIndex(qIndex - 1) : navigate("/test"));
 
   return (
-    <main className="page" style={{ maxWidth: 1300, margin: "0 auto", padding: "30px 20px 60px" }}>
-      <div style={{ maxWidth: 760, margin: "0 auto", background: C.card, border: `1px solid ${C.line}`, borderRadius: 22, padding: "26px 26px 28px", boxShadow: "0 14px 40px -28px #0f172a55" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-          <button onClick={back} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", cursor: "pointer", color: C.mut, fontSize: 14, fontWeight: 600 }}>
-            <ArrowLeft size={16} /> Назад
-          </button>
-          <span style={{ fontSize: 13.5, fontWeight: 700, color: subject.accent }}>{subject.name} · {subject.level}</span>
-          <span style={{ fontSize: 13.5, color: C.soft, fontWeight: 600 }}>{qIndex + 1} / {total}</span>
+    <main className="page test">
+      <div className="test__card" style={{ "--acc": subject.accent, "--acc-bg": subject.bg }}>
+        <div className="test__top">
+          <button onClick={back} className="test__back"><ArrowLeft size={16} /> Назад</button>
+          <span className="test__subject">{subject.name} · {subject.level}</span>
+          <span className="test__count">{qIndex + 1} / {total}</span>
         </div>
-        <div style={{ height: 8, background: C.line, borderRadius: 20, overflow: "hidden", marginBottom: 26 }}>
-          <div style={{ height: "100%", width: `${pct}%`, background: subject.accent, borderRadius: 20, transition: "width .3s" }} />
+        <div className="test__progress">
+          <div className="test__progress-fill" style={{ width: `${pct}%` }} />
         </div>
 
-        <div style={{ fontSize: 12.5, fontWeight: 700, color: C.soft, textTransform: "uppercase", letterSpacing: ".05em", marginBottom: 10 }}>{q.topic}</div>
-        <h2 style={{ fontSize: 22, fontWeight: 700, lineHeight: 1.35, margin: "0 0 24px" }}>{q.text}</h2>
+        <div className="test__topic">{q.topic}</div>
+        <h2 className="test__question">{q.text}</h2>
 
-        <div className="qopts" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 11 }}>
+        <div className="test__options">
           {q.options.map((opt, i) => (
-            <button key={i} onClick={() => answer(i)}
-              style={{ textAlign: "left", padding: "15px 16px", borderRadius: 14, border: `1.5px solid ${C.line}`,
-                background: C.card, cursor: "pointer", fontSize: 15.5, fontWeight: 500, color: C.ink, transition: "all .12s",
-                display: "flex", alignItems: "center", gap: 11 }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = subject.accent; e.currentTarget.style.background = subject.bg; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = C.line; e.currentTarget.style.background = "#fff"; }}>
-              <span style={{ width: 26, height: 26, borderRadius: 8, background: subject.bg, color: subject.accent, fontWeight: 700, fontSize: 13, display: "grid", placeItems: "center", flexShrink: 0 }}>
-                {String.fromCharCode(65 + i)}
-              </span>
+            <button key={i} onClick={() => answer(i)} className="test__option">
+              <span className="test__letter">{String.fromCharCode(65 + i)}</span>
               {opt}
             </button>
           ))}
         </div>
-        <p style={{ fontSize: 13, color: C.soft, marginTop: 22, display: "flex", alignItems: "center", gap: 6 }}>
-          <Clock size={14} /> Отвечайте честно — это нужно, чтобы точно определить ваши пробелы.
-        </p>
+        <p className="test__hint"><Clock size={14} /> Отвечайте честно — это нужно, чтобы точно определить ваши пробелы.</p>
       </div>
     </main>
   );

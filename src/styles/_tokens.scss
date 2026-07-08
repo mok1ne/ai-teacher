@@ -1,0 +1,13 @@
+// Брендовые цвета — фиксированные (одинаковы в обеих темах).
+// Фон/текст/линии — через CSS-переменные (var(--ink) и т.п.), см. main.scss.
+$blue:   #2563EB;
+$purple: #7C3AED;
+$green:  #16A34A;
+$amber:  #F59E0B;
+
+$bp-mobile: 760px;
+$bp-tablet: 920px;
+
+@mixin card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; }
+@mixin mobile { @media (max-width: $bp-mobile) { @content; } }
+@mixin tablet { @media (max-width: $bp-tablet) { @content; } }

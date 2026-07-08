@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { subjectsForLevel } from "../data/subjects";
 import { useAuth } from "../context/AuthContext";
-import { C } from "../theme";
+import "./SubjectPicker.scss";
 
 export default function SubjectPicker() {
   const navigate = useNavigate();
@@ -10,23 +10,21 @@ export default function SubjectPicker() {
   const levelName = (level || "ege") === "oge" ? "ОГЭ" : "ЕГЭ";
 
   return (
-    <main className="page" style={{ maxWidth: 1300, margin: "0 auto", padding: "44px 20px" }}>
-      <h1 style={{ fontSize: 30, fontWeight: 800, margin: "0 0 6px" }}>Выберите предмет для диагностики</h1>
-      <p style={{ fontSize: 15.5, color: C.mut, margin: "0 0 22px" }}>
+    <main className="page picker">
+      <h1 className="picker__title">Выберите предмет для диагностики</h1>
+      <p className="picker__desc">
         Подготовка к {levelName}. Короткий тест покажет ваш прогноз балла и слабые темы. Уровень можно изменить в настройках.
       </p>
 
-      <div className="cards-2" style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 14 }}>
+      <div className="picker__grid">
         {items.map(([key, s]) => (
           <div key={key} onClick={() => s.available && navigate(`/test/${key}`)}
-            style={{ background: C.card, border: `1.5px solid ${s.available ? s.accent + "33" : C.line}`, borderRadius: 16, padding: 18,
-              cursor: s.available ? "pointer" : "default", opacity: s.available ? 1 : 0.55, display: "flex", alignItems: "center", gap: 13 }}>
-            <div style={{ width: 46, height: 46, borderRadius: 12, background: s.bg, display: "grid", placeItems: "center" }}>
-              <s.Icon size={22} style={{ color: s.accent }} />
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 15.5, fontWeight: 700 }}>{s.name}</div>
-              <div style={{ fontSize: 12, color: C.soft }}>{s.available ? `${s.questions.length} вопросов · ${s.level}` : "Скоро"}</div>
+            className={`subject-card${s.available ? "" : " subject-card--locked"}`}
+            style={{ "--sp-bg": s.bg, "--sp-border": s.available ? s.accent + "33" : "var(--line)" }}>
+            <div className="subject-card__icon"><s.Icon size={22} style={{ color: s.accent }} /></div>
+            <div className="subject-card__body">
+              <div className="subject-card__name">{s.name}</div>
+              <div className="subject-card__meta">{s.available ? `${s.questions.length} вопросов · ${s.level}` : "Скоро"}</div>
             </div>
           </div>
         ))}

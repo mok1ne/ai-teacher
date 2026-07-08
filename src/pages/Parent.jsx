@@ -7,6 +7,7 @@ import { useApp } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
 import { authHeaders } from "../lib/auth";
 import { C } from "../theme";
+import "./Parent.scss";
 
 export default function Parent() {
   const navigate = useNavigate();
@@ -37,12 +38,10 @@ export default function Parent() {
 
   if (done) {
     return (
-      <main className="page" style={{ maxWidth: 540, margin: "0 auto", padding: "60px 20px", textAlign: "center" }}>
-        <div style={{ width: 70, height: 70, borderRadius: 20, background: C.mintBg, display: "grid", placeItems: "center", margin: "0 auto 18px" }}>
-          <CheckCircle2 size={38} style={{ color: C.green }} />
-        </div>
-        <h1 style={{ fontSize: 26, fontWeight: 800, margin: "0 0 8px" }}>Спасибо за оформление!</h1>
-        <p style={{ fontSize: 15.5, color: C.mut, lineHeight: 1.55, margin: "0 0 24px" }}>
+      <main className="page pay-done">
+        <div className="pay-done__icon"><CheckCircle2 size={38} style={{ color: C.green }} /></div>
+        <h1 className="pay-done__title">Спасибо за оформление!</h1>
+        <p className="pay-done__text">
           Если ключи ЮKassa настроены — подписка активируется после подтверждения платежа (через вебхук). Без ключей это демо-возврат, чтобы проверить весь путь.
         </p>
         <Button size="lg" onClick={() => navigate("/")}>На главную</Button>
@@ -64,56 +63,50 @@ export default function Parent() {
   ];
 
   return (
-    <main className="page" style={{ maxWidth: 1300, margin: "0 auto", padding: "34px 20px 60px" }}>
-      <button onClick={() => navigate("/progress")} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", cursor: "pointer", color: C.mut, fontSize: 14, fontWeight: 600, marginBottom: 16 }}>
-        <ArrowLeft size={16} /> К прогрессу
-      </button>
+    <main className="page parent">
+      <button onClick={() => navigate("/progress")} className="parent__back"><ArrowLeft size={16} /> К прогрессу</button>
 
-      {/* progress report card — the sales argument */}
-      <div style={{ background: `linear-gradient(120deg,${C.blueBg},${C.lavBg})`, border: `1px solid ${C.line}`, borderRadius: 20, padding: "22px 24px", marginBottom: 26 }}>
-        <div style={{ fontSize: 12.5, fontWeight: 700, color: C.soft, textTransform: "uppercase" }}>Отчёт о прогрессе для родителя</div>
-        <div style={{ display: "flex", gap: 26, alignItems: "center", flexWrap: "wrap", marginTop: 10 }}>
-          <div><div style={{ fontSize: 38, fontWeight: 800, color: C.blue }}>{scoreLabel}</div><div style={{ fontSize: 13, color: C.mut }}>{scoreCaption}</div></div>
-          <div><div style={{ fontSize: 38, fontWeight: 800, color: C.green }}>{studiedCount}</div><div style={{ fontSize: 13, color: C.mut }}>тем разобрано</div></div>
-          <div style={{ flex: 1, minWidth: 200, fontSize: 14.5, color: C.sub, lineHeight: 1.5 }}>
+      <div className="parent__report">
+        <div className="parent__report-label">Отчёт о прогрессе для родителя</div>
+        <div className="parent__report-row">
+          <div><div className="parent__stat-num parent__stat-num--blue">{scoreLabel}</div><div className="parent__stat-cap">{scoreCaption}</div></div>
+          <div><div className="parent__stat-num parent__stat-num--green">{studiedCount}</div><div className="parent__stat-cap">тем разобрано</div></div>
+          <div className="parent__report-text">
             Ребёнок уже занимается по предмету «{subject.name}» и видит реальный прогресс. Подписка открывает все предметы и проверку сочинений.
           </div>
         </div>
       </div>
 
-      <h1 style={{ fontSize: 26, fontWeight: 800, margin: "0 0 6px", textAlign: "center" }}>Выберите тариф</h1>
-      <p style={{ fontSize: 14.5, color: C.mut, textAlign: "center", margin: "0 0 24px" }}>Персональный репетитор по цене чашки кофе в день</p>
+      <h1 className="parent__title">Выберите тариф</h1>
+      <p className="parent__subtitle">Персональный репетитор по цене чашки кофе в день</p>
 
-      <div className="cards-3" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16 }}>
+      <div className="parent__grid">
         {tariffs.map((t) => (
           <div key={t.name} onClick={() => setPicked(t.name)}
-            style={{ background: C.card, borderRadius: 18, padding: 22, cursor: "pointer", position: "relative",
-              border: `2px solid ${picked === t.name ? t.c : t.best ? t.c + "55" : C.line}`,
-              boxShadow: picked === t.name ? `0 14px 32px -18px ${t.c}` : "none", transition: "all .15s" }}>
-            {t.best && <span style={{ position: "absolute", top: -11, left: "50%", transform: "translateX(-50%)", fontSize: 11, fontWeight: 700, color: "#fff", background: t.c, padding: "3px 12px", borderRadius: 20 }}>Популярный</span>}
-            <div style={{ fontSize: 16, fontWeight: 700, color: t.c }}>{t.name}</div>
-            <div style={{ margin: "8px 0 14px" }}>
-              <span style={{ fontSize: 30, fontWeight: 800 }}>{t.price}</span>
-              <span style={{ fontSize: 14, color: C.mut }}> ₽/мес</span>
+            className={`tariff${picked === t.name ? " tariff--picked" : t.best ? " tariff--best" : ""}`}
+            style={{ "--t-color": t.c }}>
+            {t.best && <span className="tariff__badge">Популярный</span>}
+            <div className="tariff__name">{t.name}</div>
+            <div className="tariff__price">
+              <span className="tariff__price-num">{t.price}</span>
+              <span className="tariff__price-per"> ₽/мес</span>
             </div>
-            <div style={{ display: "grid", gap: 8 }}>
+            <div className="tariff__feats">
               {t.feats.map((f) => (
-                <div key={f} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13.5, color: C.sub }}>
-                  <CheckCircle2 size={15} style={{ color: t.c, flexShrink: 0 }} /> {f}
-                </div>
+                <div key={f} className="tariff__feat"><CheckCircle2 size={15} style={{ color: t.c, flexShrink: 0 }} /> {f}</div>
               ))}
             </div>
           </div>
         ))}
       </div>
 
-      <div style={{ marginTop: 24, textAlign: "center" }}>
+      <div className="parent__cta">
         <Button size="lg" color={C.purple} disabled={!picked || busy} onClick={buy}>
           <ShieldCheck size={18} /> {busy ? "Создаём платёж…" : picked ? `Оформить «${picked}»` : "Выберите тариф"}
         </Button>
-        {err && <p style={{ fontSize: 13, color: "#B91C1C", marginTop: 12 }}>{err}</p>}
-        {!user && <p style={{ fontSize: 12.5, color: C.soft, marginTop: 10 }}>Для оформления нужен вход — мы предложим войти.</p>}
-        <p style={{ fontSize: 12.5, color: C.soft, marginTop: 12, maxWidth: 460, marginLeft: "auto", marginRight: "auto", lineHeight: 1.5 }}>
+        {err && <p className="parent__error">{err}</p>}
+        {!user && <p className="parent__note">Для оформления нужен вход — мы предложим войти.</p>}
+        <p className="parent__legal">
           Оформляя подписку, родитель даёт согласие на обработку персональных данных ребёнка (152-ФЗ). Оплата через ЮKassa.
         </p>
       </div>

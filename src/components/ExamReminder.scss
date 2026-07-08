@@ -1,0 +1,26 @@
+@use "../styles/tokens" as *;
+
+.exam-edit {
+  background: var(--card); border: 1.5px solid color-mix(in srgb, #{$blue} 20%, transparent);
+  border-radius: 18px; padding: 18px 20px; margin-bottom: 16px;
+  &__head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  &__icon { color: #{$blue}; }
+  &__title { margin: 0; font-size: 16.5px; font-weight: 700; }
+  &__desc { font-size: 13.5px; color: var(--mut); margin: 0 0 12px; }
+  &__row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  &__input { padding: 10px 13px; border-radius: 11px; border: 1.5px solid var(--line);
+    font-size: 14.5px; font-family: inherit; color: var(--ink); outline: none; background: var(--card); }
+  &__note { font-size: 12px; margin: 8px 0 0;
+    &--warn { color: #D97706; } &--muted { color: var(--mut); } }
+}
+.exam-timer {
+  border-radius: 14px; padding: 14px 18px; margin-bottom: 16px; display: flex; align-items: center; gap: 14px;
+  background: var(--blueBg); --acc: #{$blue};
+  &--urgent { background: var(--creamBg); --acc: #D97706; }
+  &--passed { background: var(--track); --acc: var(--mut); }
+  &__icon { color: var(--acc); flex-shrink: 0; }
+  &__main { flex: 1; min-width: 0; }
+  &__big { font-size: 20px; font-weight: 800; color: var(--acc); }
+  &__line { font-size: 15px; font-weight: 700; color: var(--acc); }
+  &__sub { font-size: 12.5px; color: var(--mut); }
+}

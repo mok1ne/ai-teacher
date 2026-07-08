@@ -1,0 +1,61 @@
+@use "../styles/tokens" as *;
+
+.progress {
+  max-width: 1300px; margin: 0 auto; padding: 34px 20px 60px;
+  &__title { font-size: 28px; font-weight: 800; margin: 0 0 14px; }
+
+  &__profile { display: flex; align-items: center; gap: 12px; background: var(--card); border: 1px solid var(--line);
+    border-radius: 16px; padding: 14px 18px; margin-bottom: 18px; flex-wrap: wrap;
+    &--guest { background: var(--lavBg); } }
+  &__avatar { width: 42px; height: 42px; border-radius: 50%; background: var(--lavBg); color: #{$purple};
+    display: grid; place-items: center; flex-shrink: 0; font-weight: 800; font-size: 17px; }
+  &__profile-main { flex: 1; min-width: 0; }
+  &__profile-name { font-size: 15.5px; font-weight: 700; }
+  &__profile-email { font-size: 13px; color: var(--mut); display: flex; align-items: center; gap: 5px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  &__profile-guest-text { flex: 1; min-width: 200px; font-size: 14px; color: var(--sub); }
+  &__profile-actions { display: flex; gap: 8px; flex-shrink: 0; }
+  &__hint { font-size: 14.5px; color: var(--mut); margin: 0 0 22px; }
+
+  &__empty { text-align: center; padding: 40px 20px; background: var(--card); border: 1px solid var(--line); border-radius: 18px; }
+  &__empty-icon { width: 56px; height: 56px; border-radius: 16px; background: var(--blueBg); display: grid; place-items: center; margin: 0 auto 14px; }
+  &__empty-title { font-size: 18px; font-weight: 700; margin: 0 0 6px; }
+  &__empty-text { font-size: 14.5px; color: var(--mut); margin: 0 0 18px; }
+
+  &__list { display: grid; gap: 12px; }
+  &__item { background: var(--card); border: 1px solid var(--line); border-radius: 18px; overflow: hidden;
+    &--open { box-shadow: 0 12px 32px -22px rgba(15, 23, 42, .4); } }
+  &__head { width: 100%; background: none; border: none; cursor: pointer; padding: 16px 20px;
+    display: flex; align-items: center; gap: 14px; text-align: left; font-family: inherit; }
+  &__head-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--sub-bg); display: grid; place-items: center; flex-shrink: 0; }
+  &__head-main { flex: 1; min-width: 0; }
+  &__head-name { font-size: 17px; font-weight: 700; }
+  &__head-sub { font-size: 12.5px; color: var(--soft); }
+  &__head-score { text-align: right; flex-shrink: 0; }
+  &__head-num { font-size: 24px; font-weight: 800; color: var(--sub-acc); line-height: 1; }
+  &__head-label { font-size: 11px; color: var(--soft); }
+  &__chev { color: var(--soft); flex-shrink: 0; }
+
+  &__body { padding: 4px 20px 22px; border-top: 1px solid var(--line); }
+  &__exam { margin-top: 16px; }
+  &__grid { display: grid; grid-template-columns: 300px 1fr; gap: 20px; align-items: start;
+    @include tablet { grid-template-columns: 1fr; } }
+  &__score-col { text-align: center; }
+  &__stats-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 14px; }
+
+  &__topics-title { margin: 0 0 12px; font-size: 16px; font-weight: 700; }
+  &__topics-empty { font-size: 14px; color: #{$green}; margin: 0; }
+  &__topics { display: grid; gap: 9px; }
+  &__topic { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px;
+    border-radius: 12px; background: var(--track); border: 1px solid var(--line);
+    &--done { background: var(--mintBg); border-color: color-mix(in srgb, #{$green} 40%, transparent); } }
+  &__topic-label { display: flex; align-items: center; gap: 10px; font-size: 14.5px; font-weight: 600; color: var(--ink); }
+  &__topic--done &__topic-label { color: #{$green}; }
+  &__topic-radio { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--soft); }
+
+  &__share { margin-top: 20px; border-radius: 20px; padding: 24px; color: #fff;
+    background: linear-gradient(120deg, #{$blue}, #{$purple}); display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+  &__share-main { flex: 1; min-width: 240px; }
+  &__share-title { margin: 0 0 4px; font-size: 18px; font-weight: 700; }
+  &__share-text { margin: 0; font-size: 14px; opacity: .92; }
+}

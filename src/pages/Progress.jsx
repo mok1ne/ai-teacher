@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Flame, Award, CheckCircle2, Users, ChevronDown, ChevronUp, LogOut, Mail, ClipboardList, Settings, Share2 } from "lucide-react";
+import { Flame, Award, CheckCircle2, ChevronDown, ChevronUp, LogOut, Mail, ClipboardList, Settings, Share2 } from "lucide-react";
 import Button from "../components/ui/Button";
 import { Stat, ScoreView } from "../components/Pieces";
 import { ExamBlock } from "../components/ExamReminder";
@@ -8,6 +8,7 @@ import { SUBJECTS } from "../data/subjects";
 import { useApp } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
 import { C } from "../theme";
+import "./Progress.scss";
 
 export default function Progress() {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ export default function Progress() {
   const keys = Object.keys(resultsBySubject).filter((k) => SUBJECTS[k]);
   const [open, setOpen] = useState(lastSubjectKey && resultsBySubject[lastSubjectKey] ? lastSubjectKey : (keys[0] || null));
   const [shared, setShared] = useState(false);
+
   const shareResults = async () => {
     const lines = keys.map((k) => {
       const s = SUBJECTS[k]; const sc = scoreFor(k);
@@ -36,133 +38,117 @@ export default function Progress() {
   };
 
   return (
-    <main className="page" style={{ maxWidth: 1300, margin: "0 auto", padding: "34px 20px 60px" }}>
-      <h1 style={{ fontSize: 28, fontWeight: 800, margin: "0 0 14px" }}>Мой прогресс</h1>
+    <main className="page progress">
+      <h1 className="progress__title">Мой прогресс</h1>
 
-      {/* профиль / вход */}
       {user ? (
-        <div style={{ display: "flex", alignItems: "center", gap: 12, background: C.card, border: `1px solid ${C.line}`, borderRadius: 16, padding: "14px 18px", marginBottom: 18, flexWrap: "wrap" }}>
-          <div style={{ width: 42, height: 42, borderRadius: "50%", background: C.lavBg, color: C.purple, display: "grid", placeItems: "center", flexShrink: 0, fontWeight: 800, fontSize: 17 }}>
-            {(user.name || user.email || "?").slice(0, 1).toUpperCase()}
+        <div className="progress__profile">
+          <div className="progress__avatar">{(user.name || user.email || "?").slice(0, 1).toUpperCase()}</div>
+          <div className="progress__profile-main">
+            <div className="progress__profile-name">{user.name || "Аккаунт"}</div>
+            {user.email && <div className="progress__profile-email"><Mail size={13} /> {user.email}</div>}
           </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 15.5, fontWeight: 700 }}>{user.name || "Аккаунт"}</div>
-            {user.email && <div style={{ fontSize: 13, color: C.mut, display: "flex", alignItems: "center", gap: 5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}><Mail size={13} /> {user.email}</div>}
-          </div>
-          <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+          <div className="progress__profile-actions">
             <Button size="sm" variant="soft" color={C.purple} onClick={() => navigate("/settings")}><Settings size={15} /> Настройки</Button>
             <Button size="sm" variant="soft" color={C.mut} onClick={logout}><LogOut size={15} /> Выйти</Button>
           </div>
         </div>
       ) : (
-        <div style={{ display: "flex", alignItems: "center", gap: 12, background: C.lavBg, border: `1px solid ${C.line}`, borderRadius: 16, padding: "14px 18px", marginBottom: 18, flexWrap: "wrap" }}>
-          <div style={{ flex: 1, minWidth: 200, fontSize: 14, color: C.sub }}>Войдите, чтобы сохранять прогресс между устройствами и заниматься с ИИ.</div>
+        <div className="progress__profile progress__profile--guest">
+          <div className="progress__profile-guest-text">Войдите, чтобы сохранять прогресс между устройствами и заниматься с ИИ.</div>
           <Button size="sm" color={C.purple} onClick={() => navigate("/login?next=/progress")}>Войти</Button>
         </div>
       )}
 
       {keys.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "40px 20px", background: C.card, border: `1px solid ${C.line}`, borderRadius: 18 }}>
-          <div style={{ width: 56, height: 56, borderRadius: 16, background: C.blueBg, display: "grid", placeItems: "center", margin: "0 auto 14px" }}>
-            <ClipboardList size={26} style={{ color: C.blue }} />
-          </div>
-          <h3 style={{ fontSize: 18, fontWeight: 700, margin: "0 0 6px" }}>Вы ещё не проходили диагностику</h3>
-          <p style={{ fontSize: 14.5, color: C.mut, margin: "0 0 18px" }}>Пройдите короткий тест — и здесь появятся ваш прогноз балла и темы для подготовки.</p>
+        <div className="progress__empty">
+          <div className="progress__empty-icon"><ClipboardList size={26} style={{ color: C.blue }} /></div>
+          <h3 className="progress__empty-title">Вы ещё не проходили диагностику</h3>
+          <p className="progress__empty-text">Пройдите короткий тест — и здесь появятся ваш прогноз балла и темы для подготовки.</p>
           <Button onClick={() => navigate("/test")}>Пройти тест</Button>
         </div>
       ) : (
-      <>
-      <p style={{ fontSize: 14.5, color: C.mut, margin: "0 0 22px" }}>Нажмите на предмет, чтобы открыть подготовку и настроить дату экзамена.</p>
+        <>
+          <p className="progress__hint">Нажмите на предмет, чтобы открыть подготовку и настроить дату экзамена.</p>
 
-      <div style={{ display: "grid", gap: 12 }}>
-        {keys.map((subjectKey) => {
-          const r = resultsBySubject[subjectKey];
-          const s = SUBJECTS[subjectKey];
-          const sc = scoreFor(subjectKey);
-          const studied = studiedFor(subjectKey);
-          const expanded = open === subjectKey;
-          const headNum = sc.kind === "oge" ? sc.mark : sc.score;
-          const headLabel = sc.kind === "oge" ? "оценка" : "балл ЕГЭ";
+          <div className="progress__list">
+            {keys.map((subjectKey) => {
+              const r = resultsBySubject[subjectKey];
+              const s = SUBJECTS[subjectKey];
+              const sc = scoreFor(subjectKey);
+              const studied = studiedFor(subjectKey);
+              const expanded = open === subjectKey;
+              const headNum = sc.kind === "oge" ? sc.mark : sc.score;
+              const headLabel = sc.kind === "oge" ? "оценка" : "балл ЕГЭ";
 
-          return (
-            <div key={subjectKey} style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 18, overflow: "hidden", boxShadow: expanded ? "0 12px 32px -22px #0f172a66" : "none" }}>
-              {/* header row */}
-              <button onClick={() => setOpen(expanded ? null : subjectKey)}
-                style={{ width: "100%", background: "none", border: "none", cursor: "pointer", padding: "16px 20px", display: "flex", alignItems: "center", gap: 14, textAlign: "left" }}>
-                <div style={{ width: 44, height: 44, borderRadius: 12, background: s.bg, display: "grid", placeItems: "center", flexShrink: 0 }}>
-                  <s.Icon size={22} style={{ color: s.accent }} />
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 17, fontWeight: 700 }}>{s.name}</div>
-                  <div style={{ fontSize: 12.5, color: C.soft }}>{studied.length} из {r.weak.length} тем разобрано · {s.level}</div>
-                </div>
-                <div style={{ textAlign: "right", flexShrink: 0 }}>
-                  <div style={{ fontSize: 24, fontWeight: 800, color: s.accent, lineHeight: 1 }}>{headNum}</div>
-                  <div style={{ fontSize: 11, color: C.soft }}>{headLabel}</div>
-                </div>
-                {expanded ? <ChevronUp size={20} style={{ color: C.soft, flexShrink: 0 }} /> : <ChevronDown size={20} style={{ color: C.soft, flexShrink: 0 }} />}
-              </button>
-
-              {/* expanded body */}
-              {expanded && (
-                <div style={{ padding: "4px 20px 22px", borderTop: `1px solid ${C.line}` }}>
-                  <div style={{ marginTop: 16 }}>
-                    <ExamBlock subjectKey={subjectKey} />
-                  </div>
-
-                  <div className="cards-2" style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: 20, alignItems: "start" }}>
-                    <div style={{ textAlign: "center" }}>
-                      <ScoreView sc={sc} />
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 14 }}>
-                        <Stat Icon={Award} c={C.green} bg={C.mintBg} value={`${studied.length}/${r.weak.length}`} label="тем разобрано" />
-                        <Stat Icon={Flame} c={C.amber} bg={C.creamBg} value={`${r.correct}/${r.total}`} label="верно в тесте" />
-                      </div>
-                      <Button size="sm" variant="soft" color={s.accent} onClick={() => navigate(`/test/${subjectKey}`)} style={{ marginTop: 12 }}>Пересдать тест</Button>
+              return (
+                <div key={subjectKey} className={`progress__item${expanded ? " progress__item--open" : ""}`}>
+                  <button onClick={() => setOpen(expanded ? null : subjectKey)} className="progress__head"
+                    style={{ "--sub-bg": s.bg, "--sub-acc": s.accent }}>
+                    <div className="progress__head-icon"><s.Icon size={22} style={{ color: s.accent }} /></div>
+                    <div className="progress__head-main">
+                      <div className="progress__head-name">{s.name}</div>
+                      <div className="progress__head-sub">{studied.length} из {r.weak.length} тем разобрано · {s.level}</div>
                     </div>
+                    <div className="progress__head-score">
+                      <div className="progress__head-num">{headNum}</div>
+                      <div className="progress__head-label">{headLabel}</div>
+                    </div>
+                    {expanded ? <ChevronUp size={20} className="progress__chev" /> : <ChevronDown size={20} className="progress__chev" />}
+                  </button>
 
-                    <div>
-                      <h3 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 700 }}>Темы для подготовки</h3>
-                      {r.weak.length === 0 ? (
-                        <p style={{ fontSize: 14, color: C.greenDk, margin: 0 }}>Слабых тем нет — отличный результат! 🎉</p>
-                      ) : (
-                        <div style={{ display: "grid", gap: 9 }}>
-                          {r.weak.map((t) => {
-                            const done = studied.includes(t);
-                            return (
-                              <div key={t} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10,
-                                padding: "12px 14px", borderRadius: 12, background: done ? C.mintBg : C.track, border: `1px solid ${done ? "#BBF7D0" : C.line}` }}>
-                                <span style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14.5, fontWeight: 600, color: done ? C.greenDk : C.ink }}>
-                                  {done ? <CheckCircle2 size={18} style={{ color: C.green }} /> : <span style={{ width: 18, height: 18, borderRadius: "50%", border: `2px solid ${C.soft}` }} />}
-                                  {t}
-                                </span>
-                                {!done && <Button size="sm" color={C.purple} onClick={() => openTutor(t, subjectKey)}>Разобрать</Button>}
-                              </div>
-                            );
-                          })}
+                  {expanded && (
+                    <div className="progress__body">
+                      <div className="progress__exam"><ExamBlock subjectKey={subjectKey} /></div>
+
+                      <div className="progress__grid">
+                        <div className="progress__score-col">
+                          <ScoreView sc={sc} />
+                          <div className="progress__stats-grid">
+                            <Stat Icon={Award} c={C.green} bg={C.mintBg} value={`${studied.length}/${r.weak.length}`} label="тем разобрано" />
+                            <Stat Icon={Flame} c={C.amber} bg={C.creamBg} value={`${r.correct}/${r.total}`} label="верно в тесте" />
+                          </div>
+                          <Button size="sm" variant="soft" color={s.accent} onClick={() => navigate(`/test/${subjectKey}`)} style={{ marginTop: 12 }}>Пересдать тест</Button>
                         </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
 
-      {/* поделиться результатами */}
-      <div style={{ marginTop: 20, borderRadius: 20, padding: 24, background: `linear-gradient(120deg,${C.blue},${C.purple})`, color: "#fff",
-        display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
-        <Share2 size={28} />
-        <div style={{ flex: 1, minWidth: 240 }}>
-          <h3 style={{ margin: "0 0 4px", fontSize: 18, fontWeight: 700 }}>Поделитесь результатами</h3>
-          <p style={{ margin: 0, fontSize: 14, opacity: .92 }}>Отправьте свой прогресс родителям или друзьям — пусть видят, как растёт балл.</p>
-        </div>
-        <Button color="#fff" style={{ color: C.blue }} onClick={shareResults}>
-          {shared ? "Скопировано ✓" : "Поделиться"}
-        </Button>
-      </div>
-      </>
+                        <div>
+                          <h3 className="progress__topics-title">Темы для подготовки</h3>
+                          {r.weak.length === 0 ? (
+                            <p className="progress__topics-empty">Слабых тем нет — отличный результат! 🎉</p>
+                          ) : (
+                            <div className="progress__topics">
+                              {r.weak.map((t) => {
+                                const done = studied.includes(t);
+                                return (
+                                  <div key={t} className={`progress__topic${done ? " progress__topic--done" : ""}`}>
+                                    <span className="progress__topic-label">
+                                      {done ? <CheckCircle2 size={18} style={{ color: C.green }} /> : <span className="progress__topic-radio" />}
+                                      {t}
+                                    </span>
+                                    {!done && <Button size="sm" color={C.purple} onClick={() => openTutor(t, subjectKey)}>Разобрать</Button>}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="progress__share">
+            <Share2 size={28} />
+            <div className="progress__share-main">
+              <h3 className="progress__share-title">Поделитесь результатами</h3>
+              <p className="progress__share-text">Отправьте свой прогресс родителям или друзьям — пусть видят, как растёт балл.</p>
+            </div>
+            <Button color="#fff" style={{ color: C.blue }} onClick={shareResults}>{shared ? "Скопировано ✓" : "Поделиться"}</Button>
+          </div>
+        </>
       )}
     </main>
   );

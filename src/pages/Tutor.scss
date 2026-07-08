@@ -1,0 +1,56 @@
+@use "../styles/tokens" as *;
+
+.tutor {
+  max-width: 1300px; margin: 0 auto; padding: 16px 20px 22px;
+  display: flex; flex-direction: column; height: calc(100vh - 62px);
+
+  &__top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  &__back { display: flex; align-items: center; gap: 6px; background: none; border: none; cursor: pointer; color: var(--mut); font-size: 14px; font-weight: 600; font-family: inherit; }
+  &__badge { font-size: 12px; font-weight: 700; color: #{$purple}; background: var(--lavBg); padding: 5px 12px; border-radius: 20px; }
+
+  &__cols { flex: 1; display: flex; gap: 18px; min-height: 0; }
+  &__main { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  &__scroll { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; padding: 10px 2px 18px; }
+
+  &__intro { align-self: center; text-align: center; max-width: 420px; padding: 10px 0 6px; }
+  &__intro-icon { width: 44px; height: 44px; border-radius: 13px; margin: 0 auto 8px; color: #fff;
+    background: linear-gradient(135deg, #{$blue}, #{$purple}); display: grid; place-items: center; }
+  &__intro-text { font-size: 13.5px; color: var(--soft); }
+
+  &__error { align-self: flex-start; background: var(--chat-badge); color: var(--chat-badge__color); padding: 12px 16px; border-radius: 14px; font-size: 14px; max-width: 85%; }
+  &__limit-msg { align-self: center; text-align: center; max-width: 380px; color: var(--mut); font-size: 14px; margin-top: 20px; }
+
+  &__studied-btn { display: flex; justify-content: center; margin-bottom: 10px; }
+  &__studied-done { text-align: center; margin-bottom: 10px; font-size: 13px; font-weight: 600; color: #{$green}; }
+  &__link { color: #{$blue}; cursor: pointer; text-decoration: underline; }
+
+  &__lock { background: var(--lavBg); border: 1.5px solid color-mix(in srgb, #{$purple} 20%, transparent);
+    border-radius: 14px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  &__lock-icon { color: #{$purple}; flex-shrink: 0; }
+  &__lock-text { flex: 1; min-width: 200px; font-size: 13.5px; color: var(--sub); }
+
+  &__remaining { font-size: 12px; color: var(--soft); margin-bottom: 6px; text-align: right; }
+  &__inputbar { display: flex; gap: 10px; align-items: flex-end; }
+  &__textarea { flex: 1; resize: none; padding: 13px 16px; border-radius: 14px; border: 1.5px solid var(--line);
+    font-size: 15px; font-family: inherit; outline: none; max-height: 120px; background: var(--card); color: var(--ink); }
+
+  &__panel { width: 300px; flex-shrink: 0; background: var(--track); border: 1px solid var(--line);
+    border-radius: 16px; padding: 18px; overflow-y: auto;
+    @include tablet { display: none; } }
+  &__panel-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  &__panel-icon { width: 32px; height: 32px; border-radius: 9px; background: var(--mintBg); display: grid; place-items: center; color: #{$green}; }
+  &__panel-title { font-size: 13.5px; font-weight: 700; }
+  &__panel-ref { font-size: 12.5px; font-weight: 700; color: #{$purple}; background: var(--lavBg); padding: 6px 10px; border-radius: 9px; margin-bottom: 10px; }
+  &__panel-text { font-size: 13px; color: var(--sub); line-height: 1.5; margin: 0; }
+  &__panel-note { margin-top: 12px; font-size: 12px; color: var(--soft); line-height: 1.45; border-top: 1px solid var(--line); padding-top: 10px; }
+}
+
+.tutor-gate {
+  max-width: 460px; margin: 0 auto; padding: 60px 20px; text-align: center;
+  &__icon { width: 60px; height: 60px; border-radius: 17px; color: #fff;
+    background: linear-gradient(135deg, #{$blue}, #{$purple}); display: grid; place-items: center; margin: 0 auto 16px; }
+  &__title { font-size: 24px; font-weight: 800; margin: 0 0 8px; }
+  &__text { font-size: 15px; color: var(--mut); line-height: 1.55; margin: 0 0 22px; }
+}
+.tutor-loading { max-width: 1300px; margin: 0 auto; padding: 80px 20px; text-align: center;
+  &__icon { color: #{$blue}; } }
