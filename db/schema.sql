@@ -18,7 +18,8 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS reset_codes (
   email      TEXT PRIMARY KEY,
   code       TEXT NOT NULL,
-  expires_at TIMESTAMPTZ NOT NULL
+  expires_at TIMESTAMPTZ NOT NULL,
+  attempts   INT NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS progress (
@@ -31,3 +32,6 @@ CREATE TABLE IF NOT EXISTS progress (
 
 -- Если таблица users уже создана ранее — добавьте колонку:
 -- ALTER TABLE users ADD COLUMN IF NOT EXISTS level TEXT NOT NULL DEFAULT 'ege';
+
+-- Если reset_codes уже создана ранее — добавьте колонку попыток:
+-- ALTER TABLE reset_codes ADD COLUMN IF NOT EXISTS attempts INT NOT NULL DEFAULT 0;

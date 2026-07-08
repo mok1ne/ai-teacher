@@ -38,7 +38,16 @@ export default async function handler(req, res) {
         "x-api-key": process.env.ANTHROPIC_API_KEY,
         "anthropic-version": "2023-06-01",
       },
-      body: JSON.stringify(req.body),
+      body: JSON.stringify((() => {
+        const b = req.body || {};
+        return {
+          model: b.model,
+          system: b.system,
+          messages: Array.isArray(b.messages) ? b.messages.slice(-40) : [],
+          max_tokens: Math.min(Number(b.max_tokens) || 1024, 2000),
+          ...(b.temperature != null ? { temperature: Math.max(0, Math.min(1, Number(b.temperature))) } : {}),
+        };
+      })()),
     });
     const data = await r.json();
     if (r.ok) increment(key); // списываем ТОЛЬКО при успешном ответе
