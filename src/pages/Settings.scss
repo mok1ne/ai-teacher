@@ -9,7 +9,7 @@
   &__grid { display: grid; grid-template-columns: 230px 1fr; gap: 22px; align-items: start;
     @include mobile { grid-template-columns: 1fr; } }
   &__nav { display: flex; flex-direction: column; gap: 4px; position: sticky; top: 20px;
-    @include mobile { flex-direction: row; overflow-x: auto; position: static; padding-bottom: 4px; } }
+    @include mobile {overflow-x: auto; position: static; padding-bottom: 4px; } }
   &__nav-btn { display: flex; align-items: center; gap: 10px; padding: 11px 13px; border-radius: 12px; border: 0;
     cursor: pointer; font-family: inherit; font-size: 14.5px; font-weight: 600; text-align: left; white-space: nowrap;
     background: transparent; color: var(--sub);
@@ -42,7 +42,8 @@
     .settings__toggle--on & { left: 23px; } }
   &__toggle-text { font-size: 14.5px; font-weight: 600; }
 
-  &__themes { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  &__themes { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; 
+  @include mobile {grid-template-columns: 1fr; } }
   &__theme { padding: 10px; border-radius: 15px; cursor: pointer; font-family: inherit; background: var(--card); border: 2px solid var(--line); transition: border-color .15s;
     &--active { border-color: #{$purple}; } }
   &__theme-label { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 10px; font-size: 13.5px; font-weight: 700; color: var(--ink); }

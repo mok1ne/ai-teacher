@@ -9,7 +9,7 @@
     &--guest { background: var(--lavBg); } }
   &__avatar { width: 42px; height: 42px; border-radius: 50%; background: var(--lavBg); color: #{$purple};
     display: grid; place-items: center; flex-shrink: 0; font-weight: 800; font-size: 17px; }
-  &__profile-main { flex: 1; min-width: 0; }
+  &__profile-main { min-width: 0; }
   &__profile-name { font-size: 15.5px; font-weight: 700; }
   &__profile-email { font-size: 13px; color: var(--mut); display: flex; align-items: center; gap: 5px;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -28,7 +28,7 @@
   &__head { width: 100%; background: none; border: none; cursor: pointer; padding: 16px 20px;
     display: flex; align-items: center; gap: 14px; text-align: left; font-family: inherit; }
   &__head-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--sub-bg); display: grid; place-items: center; flex-shrink: 0; }
-  &__head-main { flex: 1; min-width: 0; }
+  &__head-main { flex: 1; min-width: 0; color: var(--ink);}
   &__head-name { font-size: 17px; font-weight: 700; }
   &__head-sub { font-size: 12.5px; color: var(--soft); }
   &__head-score { text-align: right; flex-shrink: 0; }
@@ -58,4 +58,26 @@
   &__share-main { flex: 1; min-width: 240px; }
   &__share-title { margin: 0 0 4px; font-size: 18px; font-weight: 700; }
   &__share-text { margin: 0; font-size: 14px; opacity: .92; }
+}
+
+/* Меню «Поделиться» */
+.share-modal {
+  position: fixed; inset: 0; z-index: 1000; background: rgba(11, 16, 32, .5);
+  backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+  display: grid; place-items: center; padding: 20px;
+  &__card { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 22px;
+    width: 100%; max-width: 380px; box-shadow: 0 30px 80px -30px rgba(11, 16, 32, .6); }
+  &__title { font-size: 17px; font-weight: 800; margin-bottom: 16px; text-align: center; color: var(--ink); }
+  &__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  &__btn { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 13px;
+    border: 1.5px solid var(--line); background: var(--card); cursor: pointer; font-family: inherit;
+    font-size: 14px; font-weight: 600; color: var(--ink); transition: border-color .15s;
+    &:hover { border-color: color-mix(in srgb, #{$purple} 40%, var(--line)); } }
+  &__ic { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; flex-shrink: 0; color: #fff;
+    &--muted { background: var(--track); color: var(--ink); } }
+  &__vk { color: #fff; font-weight: 800; font-size: 12px; }
+  &__more { width: 100%; margin-top: 12px; padding: 11px; border-radius: 12px; border: 1.5px solid var(--line);
+    background: transparent; cursor: pointer; font-family: inherit; font-weight: 600; color: var(--sub); }
+  &__close { width: 100%; margin-top: 8px; padding: 11px; border: none; background: none; cursor: pointer;
+    font-family: inherit; font-weight: 600; color: var(--mut); }
 }

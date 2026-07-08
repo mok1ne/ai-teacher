@@ -18,6 +18,7 @@ function formatPhone(v) {
   if (d.length > 8) out += "-" + d.slice(8, 10);
   return out;
 }
+const cap = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
 const Ok = ({ children }) => <span className="settings__ok"><Check size={14} /> {children}</span>;
 
 function ThemePreview({ mode }) {
@@ -105,7 +106,7 @@ export default function Settings() {
         <section className="settings__panel">
           {tab === "profile" && (<>
             <h2 className="settings__h">Имя</h2><p className="settings__desc">Как к вам обращаться в приложении.</p>
-            <input className="settings__input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ваше имя" />
+            <input className="settings__input" value={name} onChange={(e) => setName(cap(e.target.value))} placeholder="Ваше имя" />
             <div className="settings__row"><Button onClick={saveName}>Сохранить</Button>{nameMsg && <Ok>{nameMsg}</Ok>}</div>
           </>)}
 

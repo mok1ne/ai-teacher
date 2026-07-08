@@ -28,6 +28,7 @@ function Field({ icon: Icon, ...props }) {
     </div>
   );
 }
+const cap = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
 const submitBtn = { width: "100%", justifyContent: "center", padding: "13px" };
 
 function LevelChoice({ value, onChange }) {
@@ -204,7 +205,7 @@ export default function Login() {
             {mode === "register" && step === 2 && (
               <div className="login__form">
                 <div className="login__hint">Расскажите о себе:</div>
-                <Field icon={User} type="text" value={name} placeholder="Имя" autoComplete="given-name" onChange={(e) => setName(e.target.value)} />
+                <Field icon={User} type="text" value={name} placeholder="Имя" autoComplete="given-name" onChange={(e) => setName(cap(e.target.value))} />
                 <Field icon={Calendar} type="number" value={age} placeholder="Возраст" min="7" max="100" onChange={(e) => setAge(e.target.value)} onKeyDown={(e) => e.key === "Enter" && nextToLevel()} />
                 <Button onClick={nextToLevel} style={submitBtn}>Далее <ArrowRight size={16} /></Button>
                 <button onClick={() => { setStep(1); resetState(); }} className="login__link">← Назад</button>
@@ -263,7 +264,7 @@ export default function Login() {
             {phoneStep === "profile" && (
               <>
                 <div className="login__hint">Вы впервые — расскажите о себе:</div>
-                <Field icon={User} type="text" value={name} placeholder="Имя" onChange={(e) => setName(e.target.value)} />
+                <Field icon={User} type="text" value={name} placeholder="Имя" onChange={(e) => setName(cap(e.target.value))} />
                 <Field icon={Calendar} type="number" value={age} placeholder="Возраст" min="7" max="100" onChange={(e) => setAge(e.target.value)} />
                 <div className="login__label login__label--sm">Какой экзамен?</div>
                 <LevelChoice value={level} onChange={setLevel} />

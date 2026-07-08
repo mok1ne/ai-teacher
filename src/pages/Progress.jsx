@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Flame, Award, CheckCircle2, ChevronDown, ChevronUp, LogOut, Mail, ClipboardList, Settings, Share2 } from "lucide-react";
+import { Flame, Award, CheckCircle2, ChevronDown, ChevronUp, LogOut, Mail, ClipboardList, Settings, Share2, Send, MessageCircle, Copy } from "lucide-react";
 import Button from "../components/ui/Button";
 import { Stat, ScoreView } from "../components/Pieces";
 import { ExamBlock } from "../components/ExamReminder";
@@ -17,18 +17,27 @@ export default function Progress() {
   const keys = Object.keys(resultsBySubject).filter((k) => SUBJECTS[k]);
   const [open, setOpen] = useState(lastSubjectKey && resultsBySubject[lastSubjectKey] ? lastSubjectKey : (keys[0] || null));
   const [shared, setShared] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
 
-  const shareResults = async () => {
-    const lines = keys.map((k) => {
-      const s = SUBJECTS[k]; const sc = scoreFor(k);
-      if (!s || !sc) return null;
-      return sc.kind === "oge" ? `— ${s.name} (${s.level}): ожидаемая оценка ${sc.mark}` : `— ${s.name} (${s.level}): ~${sc.score} баллов`;
-    }).filter(Boolean);
-    const text = `Мои результаты в «Время сдавать»:\n${lines.join("\n")}\n\nГотовлюсь к экзамену с ИИ-наставником.`;
-    try {
-      if (navigator.share) { await navigator.share({ title: "Время сдавать", text }); return; }
-      await navigator.clipboard.writeText(text); setShared(true); setTimeout(() => setShared(false), 2500);
-    } catch { /* пользователь отменил */ }
+  const shareLines = keys.map((k) => {
+    const s = SUBJECTS[k]; const sc = scoreFor(k);
+    if (!s || !sc) return null;
+    return sc.kind === "oge" ? `— ${s.name} (${s.level}): ожидаемая оценка ${sc.mark}` : `— ${s.name} (${s.level}): ~${sc.score} баллов`;
+  }).filter(Boolean);
+  const shareText = `Мои результаты в «Время сдавать»:\n${shareLines.join("\n")}\n\nГотовлюсь к экзамену с ИИ-наставником.`;
+  const shareUrl = "https://vremyasdavat.ru";
+
+  const openNet = (url) => { window.open(url, "_blank", "noopener,noreferrer"); setShareOpen(false); };
+  const shareTelegram = () => openNet(`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`);
+  const shareVK = () => openNet(`https://vk.com/share.php?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent("Время сдавать")}&comment=${encodeURIComponent(shareText)}`);
+  const shareWhatsApp = () => openNet(`https://wa.me/?text=${encodeURIComponent(shareText + "\n" + shareUrl)}`);
+  const copyShare = async () => {
+    try { await navigator.clipboard.writeText(shareText + "\n" + shareUrl); setShared(true); setTimeout(() => setShared(false), 2500); } catch { /* ignore */ }
+    setShareOpen(false);
+  };
+  const nativeShare = async () => {
+    try { if (navigator.share) await navigator.share({ title: "Время сдавать", text: shareText, url: shareUrl }); } catch { /* cancelled */ }
+    setShareOpen(false);
   };
 
   const openTutor = (topic, subjectKey) => {
@@ -146,8 +155,34 @@ export default function Progress() {
               <h3 className="progress__share-title">Поделитесь результатами</h3>
               <p className="progress__share-text">Отправьте свой прогресс родителям или друзьям — пусть видят, как растёт балл.</p>
             </div>
-            <Button color="#fff" style={{ color: C.blue }} onClick={shareResults}>{shared ? "Скопировано ✓" : "Поделиться"}</Button>
+            <Button color="#fff" style={{ color: C.blue }} onClick={() => setShareOpen(true)}>{shared ? "Скопировано ✓" : "Поделиться"}</Button>
           </div>
+
+          {shareOpen && (
+            <div className="share-modal" onClick={() => setShareOpen(false)}>
+              <div className="share-modal__card" onClick={(e) => e.stopPropagation()}>
+                <div className="share-modal__title">Куда отправить результаты?</div>
+                <div className="share-modal__grid">
+                  <button className="share-modal__btn" onClick={shareTelegram}>
+                    <span className="share-modal__ic" style={{ background: "#229ED9" }}><Send size={18} color="#fff" /></span>Telegram
+                  </button>
+                  <button className="share-modal__btn" onClick={shareVK}>
+                    <span className="share-modal__ic" style={{ background: "#0077FF" }}><span className="share-modal__vk">VK</span></span>ВКонтакте
+                  </button>
+                  <button className="share-modal__btn" onClick={shareWhatsApp}>
+                    <span className="share-modal__ic" style={{ background: "#25D366" }}><MessageCircle size={18} color="#fff" /></span>WhatsApp
+                  </button>
+                  <button className="share-modal__btn" onClick={copyShare}>
+                    <span className="share-modal__ic share-modal__ic--muted"><Copy size={18} /></span>Скопировать
+                  </button>
+                </div>
+                {typeof navigator !== "undefined" && navigator.share && (
+                  <button className="share-modal__more" onClick={nativeShare}>Ещё способы…</button>
+                )}
+                <button className="share-modal__close" onClick={() => setShareOpen(false)}>Отмена</button>
+              </div>
+            </div>
+          )}
         </>
       )}
     </main>
